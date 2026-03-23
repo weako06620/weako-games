@@ -1,15 +1,12 @@
 {
-  "name": "TERRA — City Builder",
-  "short_name": "TERRA",
-  "description": "Jeu de construction de ville multijoueur en temps réel",
-  "start_url": "/terra/index.html",
-  "scope": "/terra/",
+  "name": "Weako Games",
+  "short_name": "Weako",
+  "description": "Portail de jeux par Weako — Aliens vs Marines, Warhammer 40K, Terminator et plus !",
+  "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#090d16",
-  "theme_color": "#090d16",
-  "lang": "fr",
-  "categories": ["games", "entertainment"],
+  "background_color": "#0a0a0f",
+  "theme_color": "#0a0a0f",
   "icons": [
     {
       "src": "icon-192.png",
@@ -23,5 +20,7 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "categories": ["games", "entertainment"],
+  "lang": "fr"
 }

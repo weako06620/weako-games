@@ -1,26 +1,53 @@
-// TERRA sw.js v0.5.0 — Cache désactivé pendant le développement
-// Le SW s'enregistre mais ne cache rien pour éviter les problèmes de version
+const CACHE_NAME = 'weako-games-v1';
+const ASSETS = [
+  './',
+  './index.html',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+  'https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Press+Start+2P&display=swap'
+];
 
-const CACHE = 'terra-v5';
-
-self.addEventListener('install', e => {
-  self.skipWaiting();
+// Install — cache assets
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(ASSETS))
+      .then(() => self.skipWaiting())
+  );
 });
 
-self.addEventListener('activate', e => {
-  // Supprimer TOUS les anciens caches
-  e.waitUntil(
+// Activate — clean old caches
+self.addEventListener('activate', event => {
+  event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.map(k => {
-        console.log('Suppression cache:', k);
-        return caches.delete(k);
-      }))
+      Promise.all(
+        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+      )
     ).then(() => self.clients.claim())
   );
 });
 
-// Réseau uniquement — pas de cache
-self.addEventListener('fetch', e => {
-  // Laisser passer toutes les requêtes vers le réseau
-  return;
+// Fetch — cache first, then network
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(cached => {
+        if (cached) return cached;
+        return fetch(event.request).then(response => {
+          // Cache new requests dynamically
+          if (response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
+          return response;
+        });
+      })
+      .catch(() => {
+        // Offline fallback
+        if (event.request.destination === 'document') {
+          return caches.match('./index.html');
+        }
+      })
+  );
 });
