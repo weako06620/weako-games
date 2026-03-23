@@ -1,0 +1,2425 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>TERRA v5 — Jeu</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#090d16">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/game.css">
+  <script src="js/config.js"></script>
+</head>
+<body class="game-page">
+
+<div id="overlay">
+  <div class="spinner"></div>
+  <div id="overlay-text">Chargement de la cité…</div>
+</div>
+
+<!-- ── TOPBAR ── -->
+<div id="topbar">
+  <div id="tb-logo">
+    <div id="tb-logo-t">TERRA</div>
+    <div id="tb-ver">v0.5.0</div>
+  </div>
+  <div id="tb-world">
+    <div id="tb-world-name">—</div>
+    <div id="tb-era" style="font-size:11px;letter-spacing:.5px;font-family:var(--sans);font-weight:700;">🪨 Âge de Pierre</div>
+    <div class="tb-code" id="tb-code" title="Cliquez pour copier">—</div>
+  </div>
+  <div id="tb-right">
+    <div id="tb-player">
+      <div id="tb-avatar">?</div>
+      <span id="tb-player-name">—</span>
+    </div>
+    <div id="tb-save">
+      <div id="save-dot"></div>
+      <span id="tb-save-lbl">Sauvegardé</span>
+    </div>
+    <button class="tb-btn" id="btn-save">💾 Sauver</button>
+    <button class="tb-btn danger" id="btn-quit">← Quitter</button>
+  </div>
+</div>
+
+<!-- ── STATUS BAR ── -->
+<div id="statusbar">
+  <div class="sb-cell">
+    <div class="sb-lbl">🌍 ISP</div>
+    <div class="sb-bar"><div class="sb-fill" id="sb-isp-fill" style="width:75%;background:var(--gn)"></div></div>
+    <div class="sb-num" id="sb-isp-num" style="color:var(--gn)">75</div>
+    <div class="sb-txt" id="sb-isp-st">Stable</div>
+  </div>
+  <div class="sb-cell">
+    <div class="sb-lbl">👥 Pop</div>
+    <div class="sb-num" id="sb-pop">5/10</div>
+    <div class="sb-txt" id="sb-pop-st">→ stable</div>
+  </div>
+  <div class="sb-cell">
+    <div class="sb-lbl">⚙ Main-d’oeuvre</div>
+    <div class="sb-bar"><div class="sb-fill" id="sb-wf-fill" style="width:50%;background:var(--pu)"></div></div>
+    <div class="sb-num" id="sb-wf-num" style="color:var(--pu)">50%</div>
+    <div class="sb-txt" id="sb-wf-st">—</div>
+  </div>
+  <div class="sb-cell">
+    <div class="sb-lbl">📅 Jour</div>
+    <div class="sb-num" id="sb-day">1</div>
+    <div class="sb-txt" id="sb-cy">Cycle 0</div>
+  </div>
+  <div id="sb-tick">
+    <div id="tdot"></div>
+    <div style="font-size:8px;color:var(--mu);text-transform:uppercase;letter-spacing:1px">Production</div>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<div id="main">
+
+  <!-- NAV -->
+  <nav id="nav">
+    <div class="ng">
+      <div class="ngl">Ville</div>
+      <div class="nb on" data-v="v-ov"><span class="nb-ic">◈</span>Aperçu</div>
+      <div class="nb"     data-v="v-zo"><span class="nb-ic">◉</span>Zones</div>
+    </div>
+    <div class="ng">
+      <div class="ngl">Gestion</div>
+      <div class="nb" data-v="v-bd"><span class="nb-ic">▣</span>Construire</div>
+      <div class="nb" data-v="v-te"><span class="nb-ic">◆</span>Évolutions</div>
+      <div class="nb" data-v="v-ec"><span class="nb-ic">▲</span>Économie</div>
+    </div>
+    <div class="ng">
+      <div class="ngl">Monde</div>
+      <div class="nb" data-v="v-mkt"><span class="nb-ic">💱</span>Hôtel des Ventes</div>
+      <div class="nb" data-v="v-pop"><span class="nb-ic">👥</span>Population</div>
+      <div class="nb" data-v="v-di"><span class="nb-ic">◌</span>Diplomatie</div>
+    </div>
+    <div id="nav-isp">
+      <div class="ni-row">
+        <div class="ni-lbl">Santé Planète</div>
+        <div id="ni-val" style="color:var(--gn)">75</div>
+      </div>
+      <div id="ni-track"><div id="ni-fill" style="width:75%;background:var(--gn)"></div></div>
+      <div id="ni-st" style="color:var(--gn)">Stable</div>
+    </div>
+  </nav>
+
+  <!-- CONTENT -->
+  <div id="content">
+
+    <!-- APERÇU -->
+    <div class="view on" id="v-ov">
+      <div class="vtitle">Aperçu</div>
+      <div class="vsub" id="ov-t">Jour 1 — Cycle 0</div>
+      <div class="cards3" id="ov-cards"></div>
+      <div class="slbl">Ressources</div>
+      <div class="res-table" id="ov-res"></div>
+      <div class="slbl">Journal d’activité</div>
+      <div id="ov-log"></div>
+    </div>
+
+    <!-- ZONES -->
+    <div class="view" id="v-zo">
+      <div class="vtitle">Zones &amp; Terrain</div>
+      <div class="vsub">Vos territoires et leurs emplacements</div>
+      <div id="zo-list"></div>
+    </div>
+
+    <!-- CONSTRUIRE -->
+    <div class="view" id="v-bd">
+      <div class="vtitle">Construire</div>
+      <div class="vsub">File max 3 · <span id="q-cnt">0</span> en cours</div>
+      <div id="bd-list"></div>
+    </div>
+
+    <!-- ÉVOLUTIONS -->
+    <div class="view" id="v-te">
+      <div class="vtitle">Évolutions</div>
+      <div class="vsub">Recherches permanentes · 2 max simultanées</div>
+      <div id="te-list"></div>
+    </div>
+
+    <!-- ÉCONOMIE -->
+    <div class="view" id="v-ec">
+      <div class="vtitle">Économie</div>
+      <div class="vsub">Bilan par cycle de production</div>
+      <div id="ec-list"></div>
+    </div>
+
+    <!-- MARCHÉ -->
+    <div class="view" id="v-mkt">
+      <div class="vtitle">Hôtel des Ventes</div>
+      <div class="vsub">Échangez vos ressources · Taux défavorables · Commission 5 💰</div>
+      <div id="mkt-list"><div style="color:var(--mu);padding:20px 0;text-align:center">Chargement…</div></div>
+    </div>
+
+    <!-- POPULATION -->
+    <div class="view" id="v-pop">
+      <div class="vtitle">Population</div>
+      <div class="vsub" id="pop-sub">Gestion des habitants</div>
+      <div id="pop-list"></div>
+    </div>
+
+    <!-- DIPLOMATIE -->
+    <div class="view" id="v-di">
+      <div class="vtitle">Diplomatie</div>
+      <div class="vsub" id="di-sub">Joueurs dans ce monde</div>
+      <div id="di-list"><div style="color:var(--mu);padding:20px 0;font-size:11px">Chargement…</div></div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- Modale de confirmation générique -->
+<div id="confirm-overlay">
+  <div id="confirm-box">
+    <div id="confirm-icon">⚠️</div>
+    <div id="confirm-title">Confirmer</div>
+    <div id="confirm-msg"></div>
+    <div id="confirm-warn"></div>
+    <div id="confirm-btns"></div>
+  </div>
+</div>
+
+<!-- ⚠️ Capture d’erreurs + Timeout de secours -->
+<script>
+(function() {
+  var lastError = '';
+
+  // Capturer TOUTES les erreurs JS avant même le module
+  window.onerror = function(msg, src, line, col, err) {
+    lastError = (err ? err.message : msg) + ' (' + (src||'').split('/').pop() + ':' + line + ')';
+    var otxt = document.getElementById('overlay-text');
+    if (otxt) otxt.textContent = '❌ ' + lastError;
+    console.error('TERRA error:', lastError);
+  };
+
+  window.addEventListener('unhandledrejection', function(e) {
+    lastError = e.reason ? (e.reason.message || String(e.reason)) : 'Promise rejetée';
+    var otxt = document.getElementById('overlay-text');
+    if (otxt) otxt.textContent = '❌ ' + lastError;
+    console.error('TERRA rejection:', lastError);
+  });
+
+  var timer = setTimeout(function() {
+    var ov = document.getElementById('overlay');
+    if (!ov || ov.classList.contains('hide')) return;
+    var errMsg = lastError || 'Délai dépassé (8s)';
+    ov.innerHTML = '<div style="text-align:center;padding:20px;font-family:monospace;max-width:340px;">' +
+      '<div style="font-size:24px;margin-bottom:12px;">⚠️</div>' +
+      '<div style="color:#f87171;font-size:12px;margin-bottom:8px;word-break:break-word;">' + errMsg + '</div>' +
+      '<div style="color:#6b85a0;font-size:11px;margin-bottom:20px;">Copiez ce message et envoyez-le.</div>' +
+      '<a href="index.html" style="display:inline-block;background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.4);color:#22d3ee;padding:10px 24px;border-radius:8px;font-size:13px;text-decoration:none;">← Retour</a>' +
+      '</div>';
+    ov.style.cssText = 'position:fixed;inset:0;background:#090d16;z-index:9000;display:flex;align-items:center;justify-content:center;';
+  }, 8000);
+
+  window.__clearLoadTimer = function() { clearTimeout(timer); };
+})();
+</script>
+
+<script type="module">
+// ══ Firebase imports ══
+import { initializeApp }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+         signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged,
+         updateProfile as fbUpdateProfile }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection,
+         query, where, getDocs, serverTimestamp, onSnapshot,
+         arrayUnion, arrayRemove, deleteDoc, orderBy, limit }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+// ══ Firebase init ══
+const _app  = initializeApp(window.FIREBASE_CONFIG);
+const _auth = getAuth(_app);
+const _db   = getFirestore(_app);
+const _gProvider = new GoogleAuthProvider();
+
+// ══ Auth helpers ══
+function onAuth(cb) { return onAuthStateChanged(_auth, cb); }
+function currentUser() { return _auth.currentUser; }
+function getInitials(name='') { return name.trim().split(' ').map(w=>w[0]?.toUpperCase()||'').join('').slice(0,2)||'?'; }
+const AVATAR_COLORS=[['#22d3ee','#0891b2'],['#34d399','#059669'],['#f59e0b','#b45309'],['#a78bfa','#6d28d9'],['#f87171','#b91c1c'],['#fb923c','#c2410c']];
+function avatarColor(uid=''){return AVATAR_COLORS[uid.charCodeAt(0)%AVATAR_COLORS.length];}
+
+// ══ DB helpers ══
+async function getProfile(uid){const s=await getDoc(doc(_db,'users',uid));return s.exists()?s.data():null;}
+async function createProfile(uid,data){await setDoc(doc(_db,'users',uid),{displayName:data.displayName||'Joueur',email:data.email||'',createdAt:serverTimestamp(),worlds:[],stats:{totalBuilt:0,totalDays:0,totalCycles:0}});}
+async function getWorld(id){const s=await getDoc(doc(_db,'worlds',id));return s.exists()?{id:s.id,...s.data()}:null;}
+function genCode(){return Math.floor(100000+Math.random()*900000).toString();}
+async function createWorld(uid,name,wname){const code=genCode();const r=doc(collection(_db,'worlds'));await setDoc(r,{name:wname||'Monde de '+name,code,createdBy:uid,createdAt:serverTimestamp(),status:'active',maxPlayers:8,players:{[uid]:{name,joinedAt:serverTimestamp(),online:true}}});await updateDoc(doc(_db,'users',uid),{worlds:arrayUnion(r.id)});return{worldId:r.id,code};}
+async function joinWorldByCode(uid,name,code){const q=query(collection(_db,'worlds'),where('code','==',code));const s=await getDocs(q);if(s.empty)throw new Error('Code invalide');const wd=s.docs[0];if(Object.keys(wd.data().players||{}).length>=wd.data().maxPlayers)throw new Error('Monde complet');await updateDoc(wd.ref,{[`players.${uid}`]:{name,joinedAt:serverTimestamp(),online:true}});await updateDoc(doc(_db,'users',uid),{worlds:arrayUnion(wd.id)});return{worldId:wd.id};}
+async function loadCity(wid,uid){const s=await getDoc(doc(_db,'worlds',wid,'cities',uid));return s.exists()?s.data():null;}
+async function saveCity(wid,uid,state){await setDoc(doc(_db,'worlds',wid,'cities',uid),{res:state.res,isp:state.isp,pop:state.pop,popMax:state.popMax,day:state.day,cycle:state.cycle,hasTH:state.hasTH,zones:state.zones,built:state.built,tm:state.tm,era:state.era,eraHistory:state.eraHistory,lastSaved:serverTimestamp()},{merge:true});}
+async function setPlayerOnline(wid,uid,online){try{await updateDoc(doc(_db,'worlds',wid),{[`players.${uid}.online`]:online});}catch(e){}}
+function listenWorld(wid,cb){return onSnapshot(doc(_db,'worlds',wid),s=>{if(s.exists())cb({id:s.id,...s.data()});});}
+function listenCities(wid,cb){return onSnapshot(collection(_db,'worlds',wid,'cities'),s=>{const c={};s.docs.forEach(d=>{c[d.id]=d.data();});cb(c);});}
+function listenMarket(wid,cb){try{const q=query(collection(_db,'worlds',wid,'market'),where('status','==','open'),orderBy('createdAt','desc'),limit(40));return onSnapshot(q,s=>{cb(s.docs.map(d=>({id:d.id,...d.data()})));});}catch(e){console.warn('market:',e);return ()=>{};}}
+async function postOffer(wid,uid,pname,give,want,rate,day){const r=doc(collection(_db,'worlds',wid,'market'));await setDoc(r,{uid,playerName:pname,give,want,rate,day,createdAt:serverTimestamp(),status:'open'});return r.id;}
+async function acceptOffer(wid,oid,buid,bname){await updateDoc(doc(_db,'worlds',wid,'market',oid),{status:'done',buyerUid:buid,buyerName:bname,closedAt:serverTimestamp()});}
+async function cancelOffer(wid,oid){await deleteDoc(doc(_db,'worlds',wid,'market',oid));}
+async function deleteWorld(wid,uid){const s=await getDoc(doc(_db,'worlds',wid));if(!s.exists())throw new Error('Introuvable');if(s.data().createdBy!==uid)throw new Error('Non autorisé');await deleteDoc(doc(_db,'worlds',wid));await updateDoc(doc(_db,'users',uid),{worlds:arrayRemove(wid)});}
+async function syncStats(uid,state){try{await updateDoc(doc(_db,'users',uid),{'stats.totalBuilt':Object.values(state.built||{}).reduce((a,b)=>a+b,0),'stats.totalDays':state.day,'stats.totalCycles':state.cycle});}catch(e){}}
+
+
+// ── CHAT DB ──
+function listenChat(wid, cb) {
+  try {
+    const q = query(collection(_db,'worlds',wid,'chat'), orderBy('ts','desc'), limit(50));
+    return onSnapshot(q, snap => {
+      const msgs = snap.docs.map(d => ({id:d.id,...d.data()})).reverse();
+      cb(msgs);
+    });
+  } catch(e) { console.warn('Chat:', e); return ()=>{}; }
+}
+async function sendChatMsg(wid, uid, name, text, tradeData) {
+  await setDoc(doc(collection(_db,'worlds',wid,'chat')), {
+    uid, name, text,
+    ts: serverTimestamp(),
+    trade: tradeData || null,
+    tradeStatus: tradeData ? 'pending' : null,
+  });
+}
+async function acceptTradeInChat(wid, msgId, buyerUid, buyerName) {
+  await updateDoc(doc(_db,'worlds',wid,'chat',msgId), {
+    tradeStatus: 'done',
+    acceptedBy: buyerUid,
+    acceptedName: buyerName,
+    acceptedAt: serverTimestamp(),
+  });
+}
+
+// ══ DATA ══
+// ══════════════════════════════════════════════════
+//  TERRA — js/data.js  v0.4.0
+//  Système des 10 Ères
+// ══════════════════════════════════════════════════
+
+const VERSION = '0.4.0';
+
+// ─── Ressources (clés fixes, noms/icônes changent selon l’ère) ───
+const RES_KEYS = ['mat1','mat2','food','water','wealth','knowledge','energy','special'];
+
+// ─── Définition des 10 ÈRES ──────────────────────
+const ERAS = [
+  // ══════════════════════════════════════
+  //  0 — ÂGE DE PIERRE
+  // ══════════════════════════════════════
+  {
+    id:0, name:"Âge de Pierre", icon:"🪨", short:"Pierre",
+    palette: { bg:'#0a0e0d', bg1:'#0e1410', bg2:'#12190f', accent:'#86efac', accent2:'#4ade80', gold:'#d97706', muted:'#374830' },
+    desc:"L’aube de l’humanité. Survivez avec silex et feu.",
+    resources: {
+      mat1:  { n:'Silex',    ic:'🪨' },
+      mat2:  { n:'Bois',     ic:'🌿' },
+      food:  { n:'Gibier',   ic:'🦌' },
+      water: { n:'Source',   ic:'💧' },
+      wealth:{ n:'Ambre',    ic:'🟡' },
+      knowledge:{ n:'Savoir',ic:'🔥' },
+      energy:{ n:'Feu',      ic:'🔥' },
+      special:{ n:'Argile',  ic:'🟤' },
+    },
+    startRes: { mat1:50, mat2:40, food:30, water:25, wealth:5, knowledge:0, energy:10, special:20 },
+    zones: {
+      plains:  { n:'Savane',  ic:'🌿', col:'#86efac', res:'Gibier · Plantes',  eco:+2, slots:5 },
+      forest:  { n:'Forêt',   ic:'🌲', col:'#22c55e', res:'Bois · Baies',      eco:+3, slots:4 },
+      mountain:{ n:'Falaise', ic:'🪨', col:'#78716c', res:'Silex · Argile',    eco: 0, slots:3 },
+      coast:   { n:'Rivière', ic:'🌊', col:'#0ea5e9', res:'Poisson · Eau',     eco:+2, slots:3 },
+      desert:  { n:'Steppe',  ic:'🏜️', col:'#d97706', res:'Argile · Minéraux', eco:-1, slots:2 },
+    },
+    buildings: {
+      // ── SAVANE — habitat, chasse, feu ──
+      foyer:    { n:'Foyer',           cat:'Savane',    terrain:['plains'],           cost:{mat2:5},                      prod:{energy:3,food:1},          eco:+1, pop:0,  minPop:0,  t:5,  desc:'Feu permanent. Base de toute vie en tribu.' },
+      hutte:    { n:'Hutte de Savane', cat:'Savane',    terrain:['plains'],           cost:{mat2:8,special:4},            prod:{},                         eco: 0, pop:4,  minPop:0,  t:8,  desc:`+4 pop max. Abri de branches et d’argile.` },
+      piege:    { n:'Pièges à Gibier', cat:'Savane',    terrain:['plains'],           cost:{mat2:6,mat1:3},               prod:{food:4,mat2:1},             eco:-1, pop:0,  minPop:0,  t:10, desc:'Gibier quotidien. Construit en Savane.' },
+      camp:     { n:'Camp Élargi',     cat:'Savane',    terrain:['plains'],           cost:{mat2:15,special:8},           prod:{},                         eco: 0, pop:8,  minPop:5,  t:18, desc:'+8 pop max. Organisation de la tribu.' },
+      // ── FORÊT — bois, cueillette ──
+      abattage: { n:`Zone d’Abattage`,cat:'Forêt',     terrain:['forest'],           cost:{mat1:5},                      prod:{mat2:5,food:1},             eco:-2, pop:0,  minPop:0,  t:8,  desc:`Produit du Bois. Seul moyen d’en récolter.` },
+      cueillette:{ n:'Camp de Cueillette',cat:'Forêt',  terrain:['forest'],           cost:{mat2:8},                      prod:{food:3,special:1},          eco:+2, pop:0,  minPop:0,  t:10, desc:'Baies et plantes. Nourriture et argile brute.' },
+      abri_bois:{ n:'Abri sous Arbre', cat:'Forêt',     terrain:['forest'],           cost:{mat2:12,food:5},              prod:{},                          eco:+1, pop:6,  minPop:8,  t:14, desc:'+6 pop max. Refuge naturel dans les sous-bois.' },
+      // ── FALAISE — silex, gravure, savoir ──
+      taille:   { n:'Atelier de Taille',cat:'Falaise',  terrain:['mountain'],         cost:{mat2:4},                      prod:{mat1:5,energy:1},           eco: 0, pop:0,  minPop:0,  t:8,  desc:'Taille le silex. Seule source de Silex brut.' },
+      abri_roc: { n:'Grotte Aménagée', cat:'Falaise',   terrain:['mountain'],         cost:{mat1:10,mat2:5},              prod:{},                          eco:+1, pop:6,  minPop:5,  t:14, desc:'+6 pop max. Protection naturelle par la roche.' },
+      gravure:  { n:'Gravures Rupestres',cat:'Falaise',  terrain:['mountain'],         cost:{mat1:12,energy:5},            prod:{knowledge:2},               eco:+3, pop:0,  minPop:8,  t:20, desc:'Transmet le savoir par les images. Génère du Savoir.' },
+      // ── RIVIÈRE — eau, pêche ──
+      source:   { n:'Source Aménagée', cat:'Rivière',   terrain:['coast'],            cost:{mat1:6,special:4},            prod:{water:6},                   eco:+2, pop:0,  minPop:0,  t:8,  desc:'Eau potable permanente. Indispensable.' },
+      peche:    { n:'Pêcherie Primitive',cat:'Rivière',  terrain:['coast'],            cost:{mat2:8,mat1:4},               prod:{food:6,water:1},             eco:+1, pop:0,  minPop:0,  t:10, desc:'Poissons et eau. Meilleure source de nourriture.' },
+      // ── STEPPE — argile, poterie, rituels ──
+      argile:   { n:'Fosse à Argile',  cat:'Steppe',    terrain:['desert'],           cost:{mat2:5},                      prod:{special:4},                 eco: 0, pop:0,  minPop:0,  t:8,  desc:"Extrait l'argile. Seule source d'Argile brute." },
+      poterie:  { n:'Atelier Poterie', cat:'Steppe',    terrain:['desert'],           cost:{special:15,mat2:6},           prod:{special:3,wealth:2},         eco: 0, pop:0,  minPop:5,  t:18, desc:'Transforme argile → récipients. Premier commerce.' },
+      dolmen:   { n:'Dolmen Sacré',    cat:'Steppe',    terrain:['desert','mountain'],cost:{mat1:25,special:15,wealth:5},  prod:{knowledge:3,wealth:1},       eco:+4, pop:0,  minPop:12, t:30, desc:'Centre rituel. Génère Savoir et Ambre. Lieu de pouvoir.' },
+    },
+    techs: [
+      { id:'p_feu',  n:'Maîtrise du Feu',        cost:{energy:8},               t:20, effect:'+50% nourriture en Savane', req:[],                   done:false, col:'#f97316' },
+      { id:'p_out',  n:'Outils en Silex',         cost:{mat1:15,energy:5},       t:30, effect:'+40% Bois en Forêt',        req:['p_feu'],             done:false, col:'#78716c' },
+      { id:'p_pot',  n:'Poterie Avancée',         cost:{special:20,mat1:8},      t:35, effect:'+60% Argile, débloque échanges', req:['p_out'],        done:false, col:'#d97706' },
+      { id:'p_agr',  n:'🔑 Agriculture Primitive',cost:{knowledge:15,food:25,special:10}, t:60,
+        effect:`Maîtrise de l’agriculture — Passe à l’Âge de Bronze`,
+        req:['p_feu','p_out','p_pot'], done:false, col:'#86efac', isKeyTech:true },
+    ],
+    keyTechId: 'p_agr',
+    eraBonus: { prodMult:1.0, popBonus:0, resBonus:0.0 }, // premier âge, pas de bonus
+  },
+
+  // ══════════════════════════════════════
+  //  1 — ÂGE DE BRONZE
+  // ══════════════════════════════════════
+  {
+    id:1, name:"Âge de Bronze", icon:"🥉", short:"Bronze",
+    palette: { bg:'#0e0b08', bg1:'#161008', bg2:'#1e1510', accent:'#fb923c', accent2:'#f97316', gold:'#eab308', muted:'#78450a' },
+    desc:"Les premiers villages. Maîtrisez le métal.",
+    resources: {
+      mat1:  { n:'Cuivre',    ic:'🟠' },
+      mat2:  { n:'Étain',     ic:'⬜' },
+      food:  { n:'Grain',     ic:'🌾' },
+      water: { n:'Eau',       ic:'💧' },
+      wealth:{ n:'Or Natif',  ic:'🟡' },
+      knowledge:{ n:'Écriture',ic:'📜' },
+      energy:{ n:'Bronze',    ic:'🥉' },
+      special:{ n:'Argile Cuite',ic:'🏺' },
+    },
+    startRes: { mat1:60, mat2:40, food:50, water:40, wealth:15, knowledge:5, energy:20, special:30 },
+    zones: {
+      plains:  { n:'Plaine',   ic:'🌾', col:'#fb923c', res:'Grain · Eau',    eco:+1, slots:6 },
+      forest:  { n:'Forêt',    ic:'🌲', col:'#22c55e', res:'Bois · Gibier',  eco:+2, slots:4 },
+      mountain:{ n:'Colline',  ic:'⛰️', col:'#a8a29e', res:'Cuivre · Étain', eco: 0, slots:4 },
+      coast:   { n:'Delta',    ic:'🌊', col:'#0ea5e9', res:'Commerce · Sel', eco:+2, slots:3 },
+      desert:  { n:'Désert',   ic:'🏜️', col:'#d97706', res:'Or · Minéraux',  eco:-1, slots:2 },
+    },
+    buildings: {
+      village:  { n:'Village',        cat:'Habitat',    terrain:['plains','coast'],         cost:{mat2:12,food:8},            prod:{gold:1},                 eco:0,  pop:6,  minPop:0,  t:12,  desc:'Premier peuplement organisé.' },
+      fonderie: { n:'Fonderie',       cat:'Production', terrain:['mountain','plains'],      cost:{mat1:20,energy:10},         prod:{energy:4},               eco:-2, pop:0,  minPop:0,  t:15,  desc:'Fond cuivre+étain → Bronze.' },
+      champ:    { n:'Champ de Grain', cat:'Agriculture',terrain:['plains'],                 cost:{food:10,mat2:8},            prod:{food:6,water:2},          eco:+2, pop:0,  minPop:0,  t:10,  desc:'Agriculture organisée.' },
+      potier:   { n:'Potier',         cat:'Artisanat',  terrain:['coast','plains'],         cost:{special:15,mat1:8},         prod:{special:3,wealth:1},      eco:0,  pop:0,  minPop:5,  t:14,  desc:'Céramique de qualité.' },
+      grenier:  { n:'Grenier',        cat:'Agriculture',terrain:['plains'],                 cost:{mat2:20,special:10},        prod:{food:3},                  eco:0,  pop:0,  minPop:8,  t:18,  desc:'Stockage alimentaire.' },
+      bateau:   { n:'Bateau Marchand',cat:'Commerce',   terrain:['coast'],                  cost:{mat2:25,energy:15},         prod:{wealth:4},                eco:+1, pop:0,  minPop:10, t:25,  desc:'Commerce maritime. Richesse.' },
+      palais:   { n:'Palais Seigneur',cat:'Habitat',    terrain:['plains','coast'],         cost:{energy:30,wealth:20,special:25},prod:{knowledge:3,wealth:2},eco:-1, pop:15, minPop:15, t:40,  desc:'+15 pop. Centre du pouvoir.' },
+    },
+    techs: [
+      { id:'b_metal',n:'Alliage Bronze',    cost:{knowledge:8,mat1:25,mat2:25},t:25,effect:'+60% production Bronze', req:[],done:false,col:'#fb923c' },
+      { id:'b_irri', n:'Irrigation',        cost:{knowledge:12,food:30},       t:35,effect:'+50% Grain',             req:['b_metal'],done:false,col:'#22c55e' },
+      { id:'b_com',  n:'Routes Commerciales',cost:{knowledge:18,wealth:20},    t:45,effect:'+80% richesse',          req:['b_irri'],done:false,col:'#eab308' },
+      { id:'b_ecr',  n:'🔑 Écriture Cunéiforme',cost:{knowledge:30,wealth:30,special:40},t:70,
+        effect:`L’écriture change tout — Passe à l’Âge de Fer`,
+        req:['b_metal','b_irri','b_com'],done:false,col:'#fb923c',isKeyTech:true },
+    ],
+    keyTechId: 'b_ecr',
+    eraBonus: { prodMult:1.15, popBonus:5, resBonus:0.2 },
+  },
+
+  // ══════════════════════════════════════
+  //  2 — ÂGE DE FER
+  // ══════════════════════════════════════
+  {
+    id:2, name:"Âge de Fer", icon:"⚔️", short:"Fer",
+    palette: { bg:'#0c0c10', bg1:'#111118', bg2:'#181820', accent:'#94a3b8', accent2:'#cbd5e1', gold:'#eab308', muted:'#3d3d50' },
+    desc:"Forges et armées. La civilisation s’organise.",
+    resources: {
+      mat1:  { n:'Fer',      ic:'⚙️' },
+      mat2:  { n:'Charbon',  ic:'🪵' },
+      food:  { n:'Blé',      ic:'🌾' },
+      water: { n:'Eau',      ic:'💧' },
+      wealth:{ n:'Monnaie',  ic:'💰' },
+      knowledge:{ n:'Lois',  ic:'📜' },
+      energy:{ n:'Acier',    ic:'⚔️' },
+      special:{ n:'Pierre taillée',ic:'🏗️' },
+    },
+    startRes: { mat1:70, mat2:50, food:60, water:45, wealth:20, knowledge:8, energy:15, special:40 },
+    zones: {
+      plains:  { n:'Campagne', ic:'🌾', col:'#94a3b8', res:'Blé · Agriculture', eco:+1, slots:6 },
+      forest:  { n:'Bois',     ic:'🌲', col:'#4ade80',  res:'Charbon · Bois',    eco:+2, slots:4 },
+      mountain:{ n:'Montagne', ic:'⛰️', col:'#71717a',  res:'Fer · Pierre',      eco: 0, slots:4 },
+      coast:   { n:'Port',     ic:'🌊', col:'#0ea5e9',  res:'Commerce · Sel',    eco:+2, slots:3 },
+      desert:  { n:'Steppe',   ic:'🏜️', col:'#d97706',  res:'Minerai rare',      eco:-1, slots:2 },
+    },
+    buildings: {
+      maison:  { n:'Maison',         cat:'Habitat',    terrain:['plains','coast'],        cost:{mat2:15,special:10},        prod:{},                       eco:-1, pop:7,  minPop:0,  t:12,  desc:'+7 pop max.' },
+      forge:   { n:'Forge',          cat:'Production', terrain:['mountain','plains'],     cost:{mat1:20,mat2:15},           prod:{energy:5,mat1:2},         eco:-4, pop:0,  minPop:0,  t:18,  desc:"Produit de l'Acier." },
+      ferme:   { n:'Ferme',          cat:'Agriculture',terrain:['plains'],                cost:{mat2:12,special:8},         prod:{food:6,water:1},          eco:+2, pop:0,  minPop:0,  t:10,  desc:'Agriculture efficace.' },
+      route:   { n:'Route Pavée',    cat:'Commerce',   terrain:['plains','coast','mountain'],cost:{special:25,mat1:10},     prod:{wealth:3},                eco: 0, pop:0,  minPop:8,  t:20,  desc:'Commerce facilité +3 monnaie.' },
+      marche:  { n:'Forum',          cat:'Commerce',   terrain:['plains','coast'],        cost:{special:20,wealth:15},      prod:{wealth:6,knowledge:1},     eco: 0, pop:0,  minPop:10, t:22,  desc:'Échanges et lois.' },
+      caserne: { n:'Caserne',        cat:'Militaire',  terrain:['plains','mountain'],     cost:{energy:20,special:15},      prod:{},                       eco:-2, pop:10, minPop:15, t:28,  desc:'+10 pop. Protection de la cité.' },
+      aqueduc: { n:'Aqueduc',        cat:'Infrastructure',terrain:['plains','coast'],     cost:{special:40,mat1:20},        prod:{water:10,food:2},         eco:+3, pop:0,  minPop:20, t:40,  desc:'Eau abondante.' },
+    },
+    techs: [
+      { id:'f_forge',n:'Forge Avancée',    cost:{knowledge:10,mat1:30},         t:30,effect:'+70% acier',     req:[],done:false,col:'#94a3b8' },
+      { id:'f_route',n:'Réseau Routier',   cost:{knowledge:15,wealth:25},       t:40,effect:'+60% commerce',  req:['f_forge'],done:false,col:'#eab308' },
+      { id:'f_loi',  n:'Code de Lois',     cost:{knowledge:25,wealth:30},       t:50,effect:'+pop max +50%',  req:['f_route'],done:false,col:'#a78bfa' },
+      { id:'f_mon',  n:'🔑 Monnaie Frappée',cost:{knowledge:40,wealth:50,energy:40},t:80,
+        effect:`La monnaie unifiée — Passe à l’Antiquité`,
+        req:['f_forge','f_route','f_loi'],done:false,col:'#eab308',isKeyTech:true },
+    ],
+    keyTechId: 'f_mon',
+    eraBonus: { prodMult:1.15, popBonus:8, resBonus:0.2 },
+  },
+
+  // ══════════════════════════════════════
+  //  3 — ANTIQUITÉ
+  // ══════════════════════════════════════
+  {
+    id:3, name:"Antiquité", icon:"🏛️", short:"Antiquité",
+    palette: { bg:'#0d0a05', bg1:'#171208', bg2:'#1e170c', accent:'#fbbf24', accent2:'#f59e0b', gold:'#eab308', muted:'#6b4f10' },
+    desc:"Philosophes, temples et empires. L’apogée du monde antique.",
+    resources: {
+      mat1:  { n:'Marbre',     ic:'🏛️' },
+      mat2:  { n:'Bois rare',  ic:'🌴' },
+      food:  { n:'Froment',    ic:'🌾' },
+      water: { n:'Eau',        ic:'💧' },
+      wealth:{ n:'Or',         ic:'💰' },
+      knowledge:{ n:'Philosophie',ic:'📚' },
+      energy:{ n:'Fer forgé',  ic:'⚙️' },
+      special:{ n:'Commerce',  ic:'🚢' },
+    },
+    startRes: { mat1:80, mat2:60, food:70, water:55, wealth:30, knowledge:15, energy:25, special:20 },
+    zones: {
+      plains:  { n:'Terres',    ic:'🌾', col:'#fbbf24', res:'Froment · Agriculture', eco:+1, slots:6 },
+      forest:  { n:'Forêt',     ic:'🌲', col:'#22c55e', res:'Bois rare · Gibier',    eco:+2, slots:3 },
+      mountain:{ n:'Carrière',  ic:'⛰️', col:'#a8a29e', res:'Marbre · Pierre',       eco: 0, slots:4 },
+      coast:   { n:'Méditerranée',ic:'🌊',col:'#0ea5e9', res:'Commerce · Sel · Poisson',eco:+3, slots:4 },
+      desert:  { n:'Désert',    ic:'🏜️', col:'#d97706', res:'Or · Épices',           eco:-1, slots:2 },
+    },
+    buildings: {
+      domus:    { n:'Domus',          cat:'Habitat',    terrain:['plains','coast'],        cost:{mat2:18,mat1:12},           prod:{},                       eco:-1, pop:10, minPop:0,  t:15,  desc:'+10 pop. Maison patricienne.' },
+      temple:   { n:'Temple',         cat:'Culture',    terrain:['plains','mountain'],     cost:{mat1:30,wealth:20},         prod:{knowledge:4,special:2},   eco:+3, pop:0,  minPop:5,  t:25,  desc:'Philosophie et commerce.' },
+      aqueduc2: { n:'Grand Aqueduc',  cat:'Infrastructure',terrain:['plains','coast'],    cost:{mat1:40,energy:15},         prod:{water:12,food:3},         eco:+4, pop:0,  minPop:8,  t:30,  desc:'Eau pour toute la cité.' },
+      port:     { n:'Port Commercial',cat:'Commerce',   terrain:['coast'],                 cost:{mat2:30,energy:20},         prod:{wealth:8,special:4},      eco:+2, pop:0,  minPop:10, t:28,  desc:'Commerce méditerranéen.' },
+      bibliotheque:{ n:'Bibliothèque',cat:'Culture',    terrain:['plains','coast'],        cost:{mat1:25,wealth:25},         prod:{knowledge:6},             eco:+2, pop:0,  minPop:12, t:32,  desc:'Savoir accumulé.' },
+      thermes:  { n:'Thermes',        cat:'Infrastructure',terrain:['plains','coast'],     cost:{mat1:35,special:15},        prod:{water:4},                eco:+2, pop:15, minPop:18, t:35,  desc:'+15 pop. Bien-être romain.' },
+      senat:    { n:'Sénat / Agora',  cat:'Gouvernance',terrain:['plains','coast'],        cost:{mat1:50,wealth:40,knowledge:25},prod:{knowledge:8,wealth:4}, eco:+3, pop:0,  minPop:25, t:50,  desc:'Gouvernance. Bonus global.' },
+    },
+    techs: [
+      { id:'a_phi', n:'Philosophie',     cost:{knowledge:15,wealth:30},        t:35,effect:'+80% philosophie',    req:[],done:false,col:'#fbbf24' },
+      { id:'a_com', n:'Routes de Soie',  cost:{knowledge:20,special:30},       t:45,effect:'+100% commerce',     req:['a_phi'],done:false,col:'#f59e0b' },
+      { id:'a_arc', n:'Architecture',    cost:{knowledge:25,mat1:40},          t:55,effect:'+60% marbre',        req:['a_phi'],done:false,col:'#a8a29e' },
+      { id:'a_sci', n:'🔑 Sciences Naturelles',cost:{knowledge:50,wealth:60,mat1:50},t:90,
+        effect:'La raison triomphe — Passe au Moyen-Âge',
+        req:['a_phi','a_com','a_arc'],done:false,col:'#fbbf24',isKeyTech:true },
+    ],
+    keyTechId: 'a_sci',
+    eraBonus: { prodMult:1.15, popBonus:10, resBonus:0.2 },
+  },
+
+  // ══════════════════════════════════════
+  //  4 — MOYEN-ÂGE
+  // ══════════════════════════════════════
+  {
+    id:4, name:"Moyen-Âge", icon:"⚜️", short:"Médiéval",
+    palette: { bg:'#0a080e', bg1:'#110e18', bg2:'#17132a', accent:'#a78bfa', accent2:'#8b5cf6', gold:'#d97706', muted:'#3d2d6b' },
+    desc:"Châteaux, foi et chevalerie. La chrétienté règne.",
+    resources: {
+      mat1:  { n:'Pierre de taille',ic:'🏰' },
+      mat2:  { n:'Bois de charpente',ic:'🌲' },
+      food:  { n:'Blé',            ic:'🌾' },
+      water: { n:'Eau',            ic:'💧' },
+      wealth:{ n:'Florins',        ic:'💰' },
+      knowledge:{ n:'Foi',         ic:'✝️' },
+      energy:{ n:'Fer forgé',      ic:'⚔️' },
+      special:{ n:'Pierre noire',  ic:'⬛' },
+    },
+    startRes: { mat1:90, mat2:70, food:80, water:60, wealth:35, knowledge:20, energy:30, special:25 },
+    zones: {
+      plains:  { n:'Domaine',   ic:'🌾', col:'#a78bfa', res:'Blé · Agriculture',  eco:+1, slots:6 },
+      forest:  { n:'Forêt',     ic:'🌲', col:'#22c55e', res:'Bois · Gibier',      eco:+2, slots:4 },
+      mountain:{ n:'Roc',       ic:'⛰️', col:'#78716c', res:'Pierre · Fer',       eco: 0, slots:3 },
+      coast:   { n:'Havre',     ic:'🌊', col:'#0ea5e9', res:'Commerce · Sel',     eco:+2, slots:3 },
+      desert:  { n:'Lande',     ic:'🏜️', col:'#d97706', res:'Pierre noire · Or', eco:-1, slots:2 },
+    },
+    buildings: {
+      chaumiere:{ n:'Chaumière',      cat:'Habitat',    terrain:['plains','forest'],       cost:{mat2:15,food:10},           prod:{},                       eco:-1, pop:6,  minPop:0,  t:10,  desc:'+6 pop max. Habitat paysan.' },
+      chateau:  { n:'Château Fort',   cat:'Défense',    terrain:['mountain','plains'],     cost:{mat1:50,energy:25},         prod:{},                       eco:-2, pop:20, minPop:5,  t:40,  desc:'+20 pop. Protection totale.' },
+      cathedrale:{ n:'Cathédrale',    cat:'Culture',    terrain:['plains','coast'],        cost:{mat1:60,knowledge:30,wealth:30},prod:{knowledge:8},         eco:+5, pop:0,  minPop:10, t:55,  desc:'Centre spirituel. +Foi.' },
+      moulin:   { n:'Moulin',         cat:'Agriculture',terrain:['plains','coast'],        cost:{mat2:20,energy:10},         prod:{food:7,water:2},          eco:+2, pop:0,  minPop:0,  t:12,  desc:'Moulin à eau/vent. +Blé.' },
+      guilde:   { n:'Guilde des Marchands',cat:'Commerce',terrain:['plains','coast'],     cost:{wealth:30,mat2:20},         prod:{wealth:7,special:2},      eco: 0, pop:0,  minPop:12, t:28,  desc:'Commerce médiéval organisé.' },
+      hospice:  { n:'Hospice',        cat:'Infrastructure',terrain:['plains'],             cost:{knowledge:20,mat1:20},      prod:{food:2},                 eco:+3, pop:12, minPop:18, t:30,  desc:'+12 pop. Soin des habitants.' },
+      universite:{ n:'Université',    cat:'Culture',    terrain:['plains','coast'],        cost:{mat1:40,wealth:40,knowledge:30},prod:{knowledge:10,wealth:2},eco:+4, pop:0,  minPop:25, t:50,  desc:'Savoir médiéval avancé.' },
+    },
+    techs: [
+      { id:'m_for', n:'Forge Médiévale', cost:{knowledge:20,energy:40},       t:40,effect:'+70% fer forgé',   req:[],done:false,col:'#a78bfa' },
+      { id:'m_com', n:'Foires & Marchés',cost:{knowledge:25,wealth:40},       t:50,effect:'+90% florins',     req:['m_for'],done:false,col:'#d97706' },
+      { id:'m_arc', n:'Architecture Gothique',cost:{knowledge:30,mat1:50},    t:60,effect:'+60% pierre',      req:['m_com'],done:false,col:'#78716c' },
+      { id:'m_imp', n:'🔑 Imprimerie',   cost:{knowledge:60,wealth:70,special:40},t:100,
+        effect:'Gutenberg révolutionne tout — Passe à la Renaissance',
+        req:['m_for','m_com','m_arc'],done:false,col:'#a78bfa',isKeyTech:true },
+    ],
+    keyTechId: 'm_imp',
+    eraBonus: { prodMult:1.15, popBonus:12, resBonus:0.2 },
+  },
+
+  // ══════════════════════════════════════
+  //  5 — RENAISSANCE
+  // ══════════════════════════════════════
+  {
+    id:5, name:"Renaissance", icon:"🎨", short:"Renaissance",
+    palette: { bg:'#080c10', bg1:'#0c1218', bg2:'#101820', accent:'#38bdf8', accent2:'#7dd3fc', gold:'#f59e0b', muted:'#1d3d5a' },
+    desc:"Arts, sciences et exploration. L’humanisme triomphe.",
+    resources: {
+      mat1:  { n:'Verre soufflé', ic:'🔭' },
+      mat2:  { n:'Bois exotique', ic:'🌴' },
+      food:  { n:'Épices',        ic:'🌶️' },
+      water: { n:'Eau',           ic:'💧' },
+      wealth:{ n:'Ducats',        ic:'💰' },
+      knowledge:{ n:'Sciences',   ic:'🔬' },
+      energy:{ n:'Acier fin',     ic:'⚙️' },
+      special:{ n:'Art',          ic:'🎨' },
+    },
+    startRes: { mat1:80, mat2:70, food:80, water:60, wealth:40, knowledge:25, energy:35, special:15 },
+    zones: {
+      plains:  { n:'Cité-État',  ic:'🏙️', col:'#38bdf8', res:'Commerce · Artisanat', eco:+1, slots:6 },
+      forest:  { n:'Forêt',      ic:'🌲', col:'#22c55e', res:'Bois exotique',         eco:+2, slots:4 },
+      mountain:{ n:'Carrière',   ic:'⛰️', col:'#a8a29e', res:'Verre · Pierre',        eco: 0, slots:3 },
+      coast:   { n:'Port',       ic:'🌊', col:'#0ea5e9', res:'Commerce · Épices',     eco:+3, slots:4 },
+      desert:  { n:'Terres inconnues',ic:'🏜️',col:'#d97706',res:'Or · Ressources rares',eco:-1, slots:2 },
+    },
+    buildings: {
+      palazzo:  { n:'Palazzo',        cat:'Habitat',    terrain:['plains','coast'],        cost:{mat2:20,special:10},        prod:{},                       eco:0,  pop:10, minPop:0,  t:14,  desc:'+10 pop. Architecture raffinée.' },
+      atelier:  { n:`Atelier d’Art`, cat:'Culture',    terrain:['plains'],                cost:{special:20,wealth:20},      prod:{special:5,knowledge:2},   eco:+3, pop:0,  minPop:5,  t:20,  desc:"Chefs-d’oeuvre et brevets." },
+      observatoire:{ n:'Observatoire',cat:'Science',    terrain:['mountain','plains'],     cost:{mat1:30,knowledge:20},      prod:{knowledge:8},             eco:+2, pop:0,  minPop:8,  t:28,  desc:'Astronomie et cartographie.' },
+      imprimerie:{ n:'Imprimerie',    cat:'Science',    terrain:['plains','coast'],        cost:{energy:20,wealth:25},       prod:{knowledge:6,wealth:2},     eco:+1, pop:0,  minPop:10, t:25,  desc:'Diffusion du savoir.' },
+      banque:   { n:'Banque Médicis', cat:'Commerce',   terrain:['plains','coast'],        cost:{wealth:50,special:15},      prod:{wealth:9},                eco: 0, pop:0,  minPop:12, t:30,  desc:'Finance internationale.' },
+      caravelle:{ n:'Caravelle',      cat:'Exploration',terrain:['coast'],                 cost:{mat2:35,energy:20,wealth:20},prod:{wealth:7,food:3,special:3},eco:+2, pop:0,  minPop:15, t:35,  desc:'Commerce et exploration.' },
+      universite2:{ n:'Université Humaniste',cat:'Science',terrain:['plains','coast'],    cost:{knowledge:40,wealth:40,special:30},prod:{knowledge:12,special:3},eco:+5,pop:0, minPop:22, t:50,  desc:'Humanisme et sciences.' },
+    },
+    techs: [
+      { id:'r_art', n:'Mécénat des Arts',  cost:{knowledge:25,wealth:50,special:30},t:45,effect:'+100% art',       req:[],done:false,col:'#38bdf8' },
+      { id:'r_exp', n:'Navigation',         cost:{knowledge:30,mat2:40},            t:55,effect:'+80% commerce maritime',req:['r_art'],done:false,col:'#0ea5e9' },
+      { id:'r_sci', n:'Méthode Scientifique',cost:{knowledge:40,mat1:30},           t:65,effect:'+90% sciences',  req:['r_exp'],done:false,col:'#7dd3fc' },
+      { id:'r_rev', n:'🔑 Révolution Scientifique',cost:{knowledge:70,special:60,wealth:80},t:110,
+        effect:`Newton, Galilée — Passe à l’Ère Industrielle`,
+        req:['r_art','r_exp','r_sci'],done:false,col:'#38bdf8',isKeyTech:true },
+    ],
+    keyTechId: 'r_rev',
+    eraBonus: { prodMult:1.15, popBonus:15, resBonus:0.2 },
+  },
+
+  // ══════════════════════════════════════
+  //  6 — ÈRE INDUSTRIELLE
+  // ══════════════════════════════════════
+  {
+    id:6, name:"Ère Industrielle", icon:"🏭", short:"Industriel",
+    palette: { bg:'#0a0806', bg1:'#130f0b', bg2:'#1c1510', accent:'#f97316', accent2:'#fb923c', gold:'#eab308', muted:'#5a3a1a' },
+    desc:"Vapeur, charbon, acier. La machine remplace l’homme.",
+    resources: {
+      mat1:  { n:'Charbon',   ic:'⚫' },
+      mat2:  { n:'Acier',     ic:'⚙️' },
+      food:  { n:'Blé',       ic:'🌾' },
+      water: { n:'Vapeur',    ic:'♨️' },
+      wealth:{ n:'Livres Sterling',ic:'💰' },
+      knowledge:{ n:'Brevets',ic:'📋' },
+      energy:{ n:'Fer',       ic:'🔩' },
+      special:{ n:'Coton',    ic:'🧶' },
+    },
+    startRes: { mat1:100, mat2:60, food:80, water:50, wealth:45, knowledge:25, energy:40, special:30 },
+    zones: {
+      plains:  { n:'Campagne', ic:'🌾', col:'#f97316', res:'Blé · Agriculture', eco:+1, slots:5 },
+      forest:  { n:'Bois',     ic:'🌲', col:'#22c55e', res:'Bois · Charbon',    eco:+1, slots:4 },
+      mountain:{ n:'Mine',     ic:'⛰️', col:'#78716c', res:'Charbon · Fer',     eco:-2, slots:5 },
+      coast:   { n:'Port industriel',ic:'🌊',col:'#0ea5e9',res:'Commerce · Fer', eco:+1, slots:3 },
+      desert:  { n:'Terrain vague',ic:'🏭',col:'#d97706',res:'Charbon · Déchets',eco:-3, slots:2 },
+    },
+    buildings: {
+      ouvrier:  { n:'Logement Ouvrier', cat:'Habitat',   terrain:['plains','coast'],        cost:{mat2:20,mat1:10},          prod:{},                       eco:-2, pop:8,  minPop:0,  t:12,  desc:'+8 pop. Conditions difficiles.' },
+      usine:    { n:'Usine',            cat:'Production', terrain:['plains','mountain'],     cost:{mat1:30,energy:20},        prod:{mat2:6,special:3},        eco:-6, pop:0,  minPop:0,  t:20,  desc:'Production en masse.' },
+      mine:     { n:'Mine de Charbon',  cat:'Production', terrain:['mountain'],              cost:{energy:25,mat2:15},        prod:{mat1:8,energy:2},         eco:-8, pop:0,  minPop:5,  t:25,  desc:'Charbon en abondance.' },
+      ferroviaire:{ n:'Gare Ferroviaire',cat:'Infrastructure',terrain:['plains','coast','mountain'],cost:{mat2:40,mat1:20},  prod:{wealth:8,special:4},      eco:-3, pop:0,  minPop:10, t:35,  desc:'Réseau ferré. Commerce +.' },
+      filature:  { n:'Filature',        cat:'Production', terrain:['plains','coast'],        cost:{special:25,mat1:15},       prod:{special:5,wealth:4},      eco:-4, pop:0,  minPop:8,  t:22,  desc:'Textile industriel.' },
+      banque2:  { n:'Banque Nationale', cat:'Commerce',   terrain:['plains','coast'],        cost:{wealth:60,knowledge:20},   prod:{wealth:10},               eco: 0, pop:0,  minPop:15, t:32,  desc:'Capital financier.' },
+      parc:     { n:'Parc Urbain',      cat:'Écologie',   terrain:['plains'],                cost:{mat2:15,wealth:20},        prod:{},                       eco:+8, pop:12, minPop:20, t:25,  desc:'+12 pop. ISP +8. Poumon vert.' },
+    },
+    techs: [
+      { id:'i_vap', n:'Machine à Vapeur',   cost:{knowledge:30,mat1:50,mat2:30},  t:50,effect:'+80% production',   req:[],done:false,col:'#f97316' },
+      { id:'i_fer', n:'Réseau Ferroviaire', cost:{knowledge:35,mat2:50,wealth:50},t:60,effect:'+100% commerce',    req:['i_vap'],done:false,col:'#78716c' },
+      { id:'i_chi', n:'Chimie industrielle',cost:{knowledge:40,special:40},       t:70,effect:'+70% matériaux',   req:['i_vap'],done:false,col:'#fb923c' },
+      { id:'i_ele', n:'🔑 Électrification', cost:{knowledge:80,mat2:80,wealth:80},t:120,
+        effect:`Edison & Tesla — Passe à l’Ère Moderne`,
+        req:['i_vap','i_fer','i_chi'],done:false,col:'#fbbf24',isKeyTech:true },
+    ],
+    keyTechId: 'i_ele',
+    eraBonus: { prodMult:1.15, popBonus:20, resBonus:0.2 },
+  },
+
+  // ══════════════════════════════════════
+  //  7 — ÈRE MODERNE
+  // ══════════════════════════════════════
+  {
+    id:7, name:"Ère Moderne", icon:"🌆", short:"Moderne",
+    palette: { bg:'#060b14', bg1:'#0b1220', bg2:'#10192e', accent:'#60a5fa', accent2:'#93c5fd', gold:'#f59e0b', muted:'#1e3a5f' },
+    desc:"Béton, pétrole, électricité. Le XXe siècle en marche.",
+    resources: {
+      mat1:  { n:'Béton',      ic:'🏗️' },
+      mat2:  { n:'Pétrole',    ic:'🛢️' },
+      food:  { n:'Nourriture', ic:'🍞' },
+      water: { n:'Eau potable',ic:'💧' },
+      wealth:{ n:'Dollars',    ic:'💵' },
+      knowledge:{ n:'Recherche',ic:'🔬' },
+      energy:{ n:'Électricité',ic:'⚡' },
+      special:{ n:'Plastique', ic:'🧪' },
+    },
+    startRes: { mat1:120, mat2:80, food:90, water:70, wealth:55, knowledge:35, energy:50, special:25 },
+    zones: {
+      plains:  { n:'Banlieue',   ic:'🏘️', col:'#60a5fa', res:'Logements · Agriculture', eco: 0, slots:6 },
+      forest:  { n:'Zone verte', ic:'🌲', col:'#22c55e', res:'Forêt préservée',          eco:+4, slots:3 },
+      mountain:{ n:'Carrière',   ic:'⛰️', col:'#78716c', res:'Béton · Pierre',           eco:-2, slots:4 },
+      coast:   { n:'Zone port',  ic:'🌊', col:'#0ea5e9', res:'Commerce · Pétrole',       eco:+1, slots:4 },
+      desert:  { n:'Zone ind.',  ic:'🏭', col:'#d97706', res:'Pétrole · Déchets',        eco:-4, slots:3 },
+    },
+    buildings: {
+      immeuble: { n:'Immeuble',       cat:'Habitat',    terrain:['plains','coast'],        cost:{mat1:25,energy:10},        prod:{},                       eco:-2, pop:15, minPop:0,  t:15,  desc:'+15 pop max.' },
+      centrale: { n:'Centrale Élec.', cat:'Énergie',    terrain:['coast','plains'],        cost:{mat2:30,mat1:20},          prod:{energy:10},              eco:-5, pop:0,  minPop:0,  t:22,  desc:'Électricité pour tous.' },
+      usine2:   { n:'Usine Moderne',  cat:'Production', terrain:['plains','desert'],       cost:{mat1:35,energy:20},        prod:{special:6,mat1:3},        eco:-6, pop:0,  minPop:8,  t:25,  desc:'Production moderne.' },
+      hopital:  { n:'Hôpital',        cat:'Infrastructure',terrain:['plains'],             cost:{wealth:50,knowledge:20},   prod:{},                       eco:+3, pop:20, minPop:10, t:30,  desc:'+20 pop. Santé publique.' },
+      autoroute:{ n:'Autoroute',      cat:'Infrastructure',terrain:['plains','desert','coast'],cost:{mat1:50,energy:20},    prod:{wealth:9},               eco:-4, pop:0,  minPop:12, t:35,  desc:'Commerce accéléré.' },
+      solaire:  { n:'Parc Solaire',   cat:'Écologie',   terrain:['plains','desert','coast'],cost:{special:30,wealth:40},    prod:{energy:12},              eco:+8, pop:0,  minPop:18, t:28,  desc:'Énergie propre. ISP +8.' },
+      labo:     { n:'Laboratoire R&D',cat:'Science',    terrain:['plains','coast'],        cost:{knowledge:50,wealth:60},   prod:{knowledge:12,special:4},  eco:+2, pop:0,  minPop:25, t:45,  desc:'Recherche avancée.' },
+    },
+    techs: [
+      { id:'mo_auto',n:'Automobile',          cost:{knowledge:35,mat2:50,energy:40},  t:55,effect:'+80% commerce',  req:[],done:false,col:'#60a5fa' },
+      { id:'mo_med', n:'Médecine Moderne',     cost:{knowledge:45,wealth:70},          t:65,effect:'+60% pop max',  req:['mo_auto'],done:false,col:'#34d399' },
+      { id:'mo_nuc', n:'Énergie Nucléaire',    cost:{knowledge:55,energy:60,mat2:50},  t:80,effect:'+150% énergie',req:['mo_med'],done:false,col:'#a78bfa' },
+      { id:'mo_inf', n:'🔑 Informatique',      cost:{knowledge:100,energy:100,special:80},t:140,
+        effect:`Silicon Valley — Passe à l’Ère Numérique`,
+        req:['mo_auto','mo_med','mo_nuc'],done:false,col:'#60a5fa',isKeyTech:true },
+    ],
+    keyTechId: 'mo_inf',
+    eraBonus: { prodMult:1.15, popBonus:25, resBonus:0.2 },
+  },
+
+  // ══════════════════════════════════════
+  //  8 — ÈRE NUMÉRIQUE
+  // ══════════════════════════════════════
+  {
+    id:8, name:"Ère Numérique", icon:"💻", short:"Numérique",
+    palette: { bg:'#060812', bg1:'#0a0e1e', bg2:'#0e1430', accent:'#a78bfa', accent2:'#c4b5fd', gold:'#22d3ee', muted:'#2d1b69' },
+    desc:"Data, IA et réseaux. Le monde devient virtuel.",
+    resources: {
+      mat1:  { n:'Silicium',    ic:'💾' },
+      mat2:  { n:'Cuivre rare', ic:'🔌' },
+      food:  { n:'Biocultures', ic:'🧬' },
+      water: { n:'Eau filtrée', ic:'💧' },
+      wealth:{ n:'Crypto',      ic:'₿' },
+      knowledge:{ n:'Données',  ic:'📊' },
+      energy:{ n:'Énergie verte',ic:'⚡' },
+      special:{ n:'IA',         ic:'🤖' },
+    },
+    startRes: { mat1:130, mat2:90, food:100, water:80, wealth:65, knowledge:50, energy:60, special:20 },
+    zones: {
+      plains:  { n:'Smart City',  ic:'🏙️', col:'#a78bfa', res:'Data · Commerce',        eco:+2, slots:6 },
+      forest:  { n:'Zone verte',  ic:'🌿', col:'#22c55e', res:'Forêt préservée',         eco:+5, slots:3 },
+      mountain:{ n:'Datacenter',  ic:'🖥️', col:'#6b7280', res:'Silicium · Serveurs',    eco:-3, slots:5 },
+      coast:   { n:'Hub maritime',ic:'🌊', col:'#0ea5e9', res:'Commerce · Câbles',       eco:+2, slots:4 },
+      desert:  { n:'Ferme solaire',ic:'☀️',col:'#f59e0b', res:'Énergie · Lithium',      eco: 0, slots:3 },
+    },
+    buildings: {
+      smartapt: { n:'Smart Apartment',  cat:'Habitat',   terrain:['plains','coast'],       cost:{mat1:30,energy:20},         prod:{},                      eco:+1, pop:20, minPop:0,  t:18,  desc:'+20 pop. Logement connecté.' },
+      datacenter:{ n:'Datacenter',      cat:'Production', terrain:['mountain','plains'],    cost:{mat1:40,energy:30},         prod:{special:6,knowledge:8},  eco:-4, pop:0,  minPop:0,  t:25,  desc:'Données et IA.' },
+      startup:  { n:'Hub Start-up',     cat:'Commerce',   terrain:['plains','coast'],       cost:{wealth:50,knowledge:30},    prod:{wealth:10,special:3},    eco:+2, pop:0,  minPop:8,  t:28,  desc:'Innovation et capital.' },
+      reseau5g: { n:'Réseau 5G',        cat:'Infrastructure',terrain:['plains','coast','mountain'],cost:{mat2:40,energy:25},  prod:{wealth:7,special:2},    eco: 0, pop:0,  minPop:10, t:30,  desc:'Connectivité totale.' },
+      biotechlab:{ n:'Biotech Lab',     cat:'Science',    terrain:['plains','coast'],       cost:{knowledge:60,special:30},   prod:{knowledge:15,food:5},    eco:+3, pop:0,  minPop:15, t:40,  desc:'Biologie synthétique.' },
+      solairemega:{ n:'Méga Solaire',   cat:'Écologie',   terrain:['desert','plains','coast'],cost:{energy:40,wealth:60},    prod:{energy:15},              eco:+10,pop:0,  minPop:20, t:35,  desc:'Énergie propre massive.' },
+      smartgov: { n:'Gouvernance IA',   cat:'Gouvernance',terrain:['plains','coast'],       cost:{special:50,knowledge:60,wealth:70},prod:{special:8,wealth:8,knowledge:10},eco:+5,pop:25,minPop:30,t:55,desc:'+25 pop. Gouvernance totale.' },
+    },
+    techs: [
+      { id:'n_ia',  n:'Intelligence Artificielle',cost:{knowledge:50,special:50,energy:50},t:70,effect:'+120% données',  req:[],done:false,col:'#a78bfa' },
+      { id:'n_bio', n:'Biotechnologie',           cost:{knowledge:60,food:50,special:30}, t:80,effect:'+100% biocultures',req:['n_ia'],done:false,col:'#34d399' },
+      { id:'n_qua', n:'Informatique Quantique',   cost:{knowledge:80,mat1:60,energy:60},  t:95,effect:'+200% silicium',  req:['n_ia'],done:false,col:'#c4b5fd' },
+      { id:'n_agi', n:'🔑 IA Générale (AGI)',     cost:{knowledge:150,special:120,wealth:120},t:160,
+        effect:'La singularité — Passe au Futur',
+        req:['n_ia','n_bio','n_qua'],done:false,col:'#a78bfa',isKeyTech:true },
+    ],
+    keyTechId: 'n_agi',
+    eraBonus: { prodMult:1.20, popBonus:30, resBonus:0.25 },
+  },
+
+  // ══════════════════════════════════════
+  //  9 — ÈRE FUTURE
+  // ══════════════════════════════════════
+  {
+    id:9, name:"Futur", icon:"🚀", short:"Futur",
+    palette: { bg:'#05060f', bg1:'#080a18', bg2:'#0c0e24', accent:'#22d3ee', accent2:'#67e8f9', gold:'#a78bfa', muted:'#0f3460' },
+    desc:"Fusion, biotech et espace. L’humanité transcende ses limites.",
+    resources: {
+      mat1:  { n:'Quantum',      ic:'⚛️' },
+      mat2:  { n:'Nano-matière', ic:'🔬' },
+      food:  { n:'Synth-food',   ic:'🧬' },
+      water: { n:'H₂O pur',      ic:'💧' },
+      wealth:{ n:'Stellaire',    ic:'⭐' },
+      knowledge:{ n:'Conscience',ic:'🧠' },
+      energy:{ n:'Fusion',       ic:'♾️' },
+      special:{ n:'Biotech',     ic:'🦾' },
+    },
+    startRes: { mat1:150, mat2:100, food:120, water:90, wealth:80, knowledge:70, energy:80, special:40 },
+    zones: {
+      plains:  { n:'Mégalopole',  ic:'🌆', col:'#22d3ee', res:'Quantum · Commerce',     eco:+3, slots:6 },
+      forest:  { n:'Dôme Éco',    ic:'🌿', col:'#4ade80', res:'Forêt préservée · Éco',  eco:+6, slots:4 },
+      mountain:{ n:'Labo souterrain',ic:'⚛️',col:'#6b7280',res:'Quantum · Nano',        eco:-2, slots:5 },
+      coast:   { n:'Port orbital', ic:'🚀', col:'#0ea5e9', res:'Stellaire · Commerce',   eco:+3, slots:4 },
+      desert:  { n:'Base solaire', ic:'☀️', col:'#f59e0b', res:'Fusion · Énergie',       eco: 0, slots:3 },
+    },
+    buildings: {
+      dome:     { n:'Dôme Habituel',    cat:'Habitat',    terrain:['plains','coast'],       cost:{mat2:40,energy:30},         prod:{},                       eco:+3, pop:25, minPop:0,  t:20,  desc:'+25 pop. Habitat durable.' },
+      reacteur: { n:'Réacteur à Fusion',cat:'Énergie',    terrain:['plains','mountain'],    cost:{mat1:50,energy:40},         prod:{energy:20,knowledge:5},   eco:+5, pop:0,  minPop:0,  t:30,  desc:'Énergie infinie et propre.' },
+      orbital:  { n:'Station Orbitale', cat:'Science',    terrain:['coast','plains'],        cost:{mat1:60,special:40,wealth:60},prod:{knowledge:20,wealth:10}, eco:+8, pop:0,  minPop:10, t:45,  desc:'Science spatiale.' },
+      biotech:  { n:'Centre Biotech',   cat:'Science',    terrain:['plains','coast'],        cost:{special:50,knowledge:40},   prod:{special:10,food:8},       eco:+5, pop:0,  minPop:12, t:38,  desc:'Biologie avancée.' },
+      quantum:  { n:'Quantum Core',     cat:'Production', terrain:['mountain','plains'],     cost:{mat1:70,energy:50},         prod:{mat1:8,mat2:6,knowledge:10},eco:-1, pop:0,  minPop:18, t:50,  desc:'Calcul quantique massif.' },
+      ecosphere:{ n:'Écosphère',        cat:'Écologie',   terrain:['forest','plains'],       cost:{special:60,knowledge:50},   prod:{food:10},                eco:+15,pop:30, minPop:25, t:55,  desc:'+30 pop. ISP +15. Paradis vert.' },
+      dyson:    { n:'Essaim de Dyson',  cat:'Énergie',    terrain:['desert','coast'],        cost:{mat2:80,energy:70,wealth:80},prod:{energy:25,wealth:12},    eco:+10,pop:0,  minPop:35, t:70,  desc:'Énergie stellaire. Fin ultime.' },
+    },
+    techs: [
+      { id:'fu_fus',n:'Fusion Nucléaire',    cost:{knowledge:80,energy:100,mat1:80},  t:90, effect:'+200% énergie',     req:[],done:false,col:'#22d3ee' },
+      { id:'fu_bio',n:'Bioaugmentation',     cost:{knowledge:100,special:80,food:60}, t:110,effect:'+150% biotech',     req:['fu_fus'],done:false,col:'#4ade80' },
+      { id:'fu_spa',n:'Colonisation Spatiale',cost:{knowledge:120,wealth:120,energy:100},t:130,effect:'+200% stellaire',req:['fu_bio'],done:false,col:'#a78bfa' },
+      { id:'fu_tra',n:'🏆 Transcendance',    cost:{knowledge:200,special:200,wealth:200,energy:200},t:200,
+        effect:`L’humanité transcende — VICTOIRE ULTIME`,
+        req:['fu_fus','fu_bio','fu_spa'],done:false,col:'#22d3ee',isKeyTech:true,isVictory:true },
+    ],
+    keyTechId: 'fu_tra',
+    eraBonus: { prodMult:1.0, popBonus:0, resBonus:0 }, // âge final
+  },
+];
+
+// ─── Helpers ──────────────────────────────────────
+function currentEra(eraId) { return ERAS[eraId || 0]; }
+function currentZones(eraId) { return ERAS[eraId || 0].zones; }
+function currentBldgs(eraId) { return ERAS[eraId || 0].buildings; }
+function currentTechs(eraId) { return ERAS[eraId || 0].techs; }
+function currentRes(eraId)   { return ERAS[eraId || 0].resources; }
+function currentKeyTech(eraId){ return ERAS[eraId||0].techs.find(t=>t.isKeyTech); }
+
+function eraRES(eraId) {
+  const res = ERAS[eraId||0].resources;
+  return Object.entries(res).map(([k,v]) => ({k,...v}));
+}
+
+function initialZones(eraId=0) {
+  const zoneDefs = ERAS[eraId].zones;
+  const result = {};
+  Object.keys(zoneDefs).forEach(k => { result[k] = { buildings:[], count: k==='plains'?8:k==='forest'?4:k==='mountain'?3:k==='coast'?2:1 }; });
+  return result;
+}
+
+// Difficulté progressive (même principe)
+function buildCostMult(day, eraId) {
+  const base = day<=10?1.0:day<=30?1.2:day<=60?1.5:day<=100?2.0:2.5;
+  const eraMult = 1 + eraId * 0.1; // chaque ère rend les constructions 10% plus chères
+  return base * eraMult;
+}
+function techCostMult(tier, day, eraId) {
+  const tf = Math.pow(1.5, tier-1);
+  const df = 1 + Math.floor(day/15)*0.15;
+  const ef = 1 + eraId * 0.12;
+  return tf * df * ef;
+}
+function upgradeCostMult(cm, level, day, eraId) {
+  const af = 1 + Math.floor(day/10)*0.10;
+  const ef = 1 + eraId * 0.08;
+  return Math.pow(cm, level) * af * ef;
+}
+
+// Marché
+const MARKET_SPREAD = 2.2;
+const MARKET_TAX_GOLD = 5;
+const MARKET_LOTS = [10, 25, 50, 100, 250];
+const RES_VALUE = { mat1:1, mat2:1.5, food:1.5, water:1.3, wealth:8, knowledge:6, energy:3, special:4 };
+function marketRate(from, to, day, discount=1) {
+  const base = (RES_VALUE[to]/RES_VALUE[from]) * MARKET_SPREAD;
+  const age  = 1 + Math.floor(day/20)*0.08;
+  return Math.max(1.2, base*age*discount);
+}
+
+const VERSION_INFO = { version:VERSION, buildDate:'2024' };
+
+// ══ GAME ══
+// ══════════════════════════════════════════════════
+//  TERRA — js/game.js  v0.4.0
+// ══════════════════════════════════════════════════
+
+
+// ── Helpers importés dans ui.js via window ────────
+let _toast  = (m,t)  => console.log(m);
+let _addLog = (m,c) => {};
+function setToast(fn)  { _toast  = fn; }
+function setAddLog(fn) { _addLog = fn; }
+
+// ══════════════════════════════════════════════════
+//  ÉTAT GLOBAL
+// ══════════════════════════════════════════════════
+const S = {
+  era:        0,
+  eraHistory: [],
+  res:        { ...ERAS[0].startRes },   // ← ressources Âge de Pierre par défaut
+  isp:        80,
+  pop:        5,
+  popMax:     8,
+  day:        1,
+  cycle:      0,
+  hasTH:      false,
+  zones:      initialZones(0),           // ← zones Âge de Pierre par défaut
+  bq:         [],
+  rq:         [],
+  built:      {},
+  tm:         {},
+  delta:      {},
+  log:        [],
+  lastPop:    5,
+  dirty:      false,
+  localOffers:[],
+};
+
+const CTX = { uid:null, worldId:null, world:null, profile:null };
+
+let _tick=null, _save=null;
+
+// ─── Init ressources selon l’ère ─────────────────
+function resetToEra(eraId, bonus={}) {
+  const ERA = ERAS[eraId];
+  S.era   = eraId;
+  S.res   = { ...ERA.startRes };
+  S.isp   = 80;
+  S.hasTH = false;
+  S.zones = initialZones(eraId);
+  S.bq    = [];
+  S.rq    = [];
+  S.built = {};
+  S.log   = [];
+  S.delta = {};
+  S.day   = 1;
+  S.cycle = 0;
+  // Reset techs de l’ère
+  ERA.techs.forEach(t => t.done = false);
+  // Appliquer les bonus de prestige
+  S.pop    = 5 + (bonus.popBonus || 0);
+  S.popMax = 8 + (bonus.popBonus || 0);
+  if (bonus.resBonus) {
+    Object.keys(S.res).forEach(k => {
+      S.res[k] = Math.floor(S.res[k] * (1 + bonus.resBonus));
+    });
+  }
+}
+
+// ── LOAD ──────────────────────────────────────────
+function loadState(saved) {
+  if (!saved) {
+    // Nouveau joueur : initialiser proprement l’ère 0
+    resetToEra(0);
+    return;
+  }
+  ['res','isp','pop','popMax','day','cycle','hasTH','zones','built','tm','era','eraHistory'].forEach(k => {
+    if (saved[k] !== undefined) S[k] = saved[k];
+  });
+  S.lastPop = S.pop;
+  S.dirty   = false;
+  // Restaurer techs done
+  if (S.tm._done) {
+    ERAS[S.era].techs.forEach(t => { if (S.tm._done.includes(t.id)) t.done = true; });
+  }
+  // Sécurité : si res ou zones sont vides après chargement, réinitialiser
+  if (!S.res || Object.keys(S.res).length === 0) {
+    S.res = { ...ERAS[S.era].startRes };
+  }
+  if (!S.zones || Object.keys(S.zones).length === 0) {
+    S.zones = initialZones(S.era);
+  }
+}
+
+// ── SAVE ──────────────────────────────────────────
+async function doSave() {
+  if (!CTX.uid || !CTX.worldId) return;
+  S.tm._done = ERAS[S.era].techs.filter(t=>t.done).map(t=>t.id);
+  await saveCity(CTX.worldId, CTX.uid, S);
+  await syncStats(CTX.uid, S);
+  S.dirty = false;
+  document.getElementById('save-dot')?.classList.remove('dirty');
+}
+function markDirty() { S.dirty=true; document.getElementById('save-dot')?.classList.add('dirty'); }
+function startAutoSave() { _save=setInterval(()=>{ if(S.dirty) doSave(); },30000); }
+function forceSave() { return doSave(); }
+
+// ── WORKFORCE ─────────────────────────────────────
+function workforce() {
+  if (S.popMax<=0) return 0.4;
+  return Math.min(1, 0.4+0.6*(S.pop/S.popMax));
+}
+
+// ══════════════════════════════════════════════════
+//  AVANCEMENT D’ÈRE
+// ══════════════════════════════════════════════════
+function canAdvanceEra() {
+  const kt = currentKeyTech(S.era);
+  return kt && kt.done;
+}
+
+function advanceEra(onUpdate) {
+  if (!canAdvanceEra()) { _toast("Recherchez d’abord la technologie clé de cette ère",'e'); return; }
+  const ERA = ERAS[S.era];
+  if (ERA.techs.find(t=>t.isVictory&&t.done)) {
+    _toast(`🏆 VICTOIRE ! Vous avez transcendé l’humanité !`,'g');
+    _addLog('🏆 VICTOIRE ULTIME — Transcendance atteinte','g');
+    return;
+  }
+  if (S.era >= ERAS.length-1) { _toast(`Vous êtes à l’ère finale !`,'w'); return; }
+
+  // Calculer les bonus
+  const bonus = {
+    popBonus: Math.floor(S.pop * 0.3) + (ERA.eraBonus.popBonus||0),
+    resBonus: ERA.eraBonus.resBonus || 0.2,
+    prodMult: ERA.eraBonus.prodMult || 1.15,
+  };
+
+  // Accumuler le multiplicateur permanent
+  const prevG = S.tm.g || 1;
+  const newG   = prevG * bonus.prodMult;
+  const savedTm = { g: newG, _eraBonus: newG, _done:[] };
+
+  // Enregistrer l’histoire
+  S.eraHistory.push({ era:S.era, name:ERA.name, completedDay:S.day });
+
+  const nextEra = S.era + 1;
+  const NEXT    = ERAS[nextEra];
+
+  // Reset total avec bonus
+  resetToEra(nextEra, bonus);
+  S.tm = savedTm;
+
+  _toast(`🎉 Bienvenue dans l'${NEXT.name} !`,'g');
+  _addLog(`✨ Transition → ${NEXT.name} (bonus: pop+${bonus.popBonus}, prod×${bonus.prodMult})`,'g');
+
+  // Appliquer le thème de la nouvelle ère
+  applyEraTheme(nextEra);
+
+  markDirty();
+  onUpdate?.();
+}
+
+// ── THÈME DYNAMIQUE ───────────────────────────────
+function applyEraTheme(eraId) {
+  const p = ERAS[eraId].palette;
+  const r = document.documentElement.style;
+  r.setProperty('--bg',   p.bg);
+  r.setProperty('--bg1',  p.bg1);
+  r.setProperty('--bg2',  p.bg2);
+  r.setProperty('--cy',   p.accent);
+  r.setProperty('--cy2',  p.accent2);
+  r.setProperty('--go',   p.gold);
+  r.setProperty('--mu',   p.muted);
+}
+
+// ── TICK ──────────────────────────────────────────
+function startTick(onTick) {
+  _tick=setInterval(()=>{ runTick(); onTick?.(); },7000);
+}
+function stopTick() { clearInterval(_tick); clearInterval(_save); }
+
+function runTick() {
+  S.cycle++;
+  if (S.cycle%10===0) S.day++;
+  const d={}, wf=workforce();
+  Object.keys(S.res).forEach(k=>d[k]=0);
+  const BLDGS = currentBldgs(S.era);
+  Object.values(S.zones).forEach(z=>z.buildings.forEach(b=>{
+    const bld=BLDGS[b.key]; if(!bld?.prod) return;
+    Object.entries(bld.prod).forEach(([r,v])=>{
+      const m=(S.tm[r]||1)*(S.tm.g||1)*wf;
+      d[r]=(d[r]||0)+Math.round(v*m);
+    });
+  }));
+  d.food  -= Math.ceil(S.pop/5);
+  d.water -= Math.ceil(S.pop/6);
+  Object.keys(S.res).forEach(r=>S.res[r]=Math.max(0,(S.res[r]||0)+(d[r]||0)));
+  S.delta=d;
+  const green=cntB(['dome','ecosphere','solaire','solairemega','parc','park']);
+  const poll =cntB(['usine','mine','centrale','usine2','datacenter']);
+  S.isp=clamp(S.isp+green*0.8*(S.tm.isp||1)-poll*0.4,0,100);
+  S.lastPop=S.pop;
+  if(S.res.food>8&&S.res.water>6&&S.pop<S.popMax) S.pop=Math.min(S.popMax,S.pop+1);
+  else if(!S.res.food||!S.res.water){
+    S.pop=Math.max(1,S.pop-2);
+    _toast('⚠ Pénurie ! Voir onglet Population','e');
+    _addLog('Pénurie — '+(!S.res.food?'famine':'sécheresse')+' — pop en déclin','r');
+    if (!S.popState) S.popState = {};
+    if (!S.popState.events) S.popState.events = [];
+    const _now=new Date(), _ts=_now.getHours()+':'+('0'+_now.getMinutes()).slice(-2);
+    S.popState.events.unshift({t:_ts, m:'💀 Pénurie critique — '+(!S.res.food?'famine':'sécheresse')+' (pop: '+S.pop+')', c:'r'});
+  }
+  markDirty();
+}
+
+// ── BUILD ─────────────────────────────────────────
+// Bâtiment fondateur de chaque ère (le premier à construire, débloque les autres)
+const ERA_FOUNDER = ['foyer','village','maison','domus','chaumiere','palazzo','ouvrier','immeuble','smartapt','dome'];
+
+function checkPrereq(key) {
+  const founderKey = ERA_FOUNDER[S.era] || 'town_hall';
+  const isFounder  = key === founderKey;
+  // Le fondateur est toujours accessible
+  if (isFounder) return true;
+  // Les autres nécessitent que le fondateur soit construit
+  if (!S.hasTH) return false;
+  return true;
+}
+
+function freeSlots(t) {
+  const z=S.zones[t]; if(!z) return 0;
+  const Z=currentZones(S.era)[t]; if(!Z) return 0;
+  return z.count*Z.slots-z.buildings.length;
+}
+
+function realCost(key) {
+  const BLDGS=currentBldgs(S.era), bld=BLDGS[key]; if(!bld) return {};
+  const lvl=S.built[key]||0, ageMult=buildCostMult(S.day,S.era);
+  if(lvl>0 && bld.upgCm) return scaleCost(bld.cost, upgradeCostMult(bld.upgCm||1.8,lvl,S.day,S.era)*ageMult);
+  return scaleCost(bld.cost, ageMult);
+}
+
+function realTechCost(tech) {
+  const mult=techCostMult(tech.tier||1,S.day,S.era);
+  const c={};
+  Object.entries(tech.cost).forEach(([k,v])=>c[k]=Math.ceil(v*mult));
+  return c;
+}
+
+function realBuildTime(key) {
+  const BLDGS=currentBldgs(S.era), bld=BLDGS[key]; if(!bld) return 5;
+  const lvl=S.built[key]||0;
+  const lf=1+lvl*0.10, af=1+Math.floor(S.day/10)*0.05, ef=1+S.era*0.05;
+  return Math.round(bld.t*lf*af*ef);
+}
+
+function scaleCost(base,mult) {
+  const c={};
+  Object.entries(base).forEach(([k,v])=>c[k]=Math.ceil(v*mult));
+  return c;
+}
+function canAfford(cost) {
+  return Object.entries(cost).every(([r,a])=>(S.res[r]||0)>=a);
+}
+function pay(cost) { Object.entries(cost).forEach(([r,a])=>S.res[r]=(S.res[r]||0)-a); }
+
+function doBuild(key, onUpdate) {
+  const founderKey = ERA_FOUNDER[S.era] || 'town_hall';
+  if (!S.hasTH && key !== founderKey) {
+    const founderName = currentBldgs(S.era)[founderKey]?.n || founderKey;
+    _toast(`Construisez d’abord : ${founderName}`, 'e'); return;
+  }
+  if (S.bq.length>=3) { _toast('File pleine — max 3 simultanées','w'); return; }
+  if (S.bq.find(q=>q.key===key)) { _toast('Déjà en construction','w'); return; }
+  const BLDGS=currentBldgs(S.era), bld=BLDGS[key];
+  if(!bld) return;
+  if(bld.minPop>0&&S.pop<bld.minPop){ _toast(`Requiert ${bld.minPop} habitants (actuel: ${S.pop})`,'e'); return; }
+  const cost=realCost(key);
+  if(!canAfford(cost)){ _toast('Ressources insuffisantes','e'); return; }
+  const tz=bld.terrain.find(t=>freeSlots(t)>0)||bld.terrain[0];
+  if(!tz&&key!==ERA_FOUNDER[S.era]&&key!=='town_hall'){ _toast('Aucun emplacement disponible','e'); return; }
+  pay(cost);
+  const dur=realBuildTime(key)*1000;
+  const entry={id:Date.now(),key,name:bld.n,lvl:(S.built[key]||0)+1,start:Date.now(),dur,fin:Date.now()+dur,tz};
+  S.bq.push(entry);
+  if(dur===0){ finishBuild(entry,onUpdate); }
+  else { setTimeout(()=>finishBuild(entry,onUpdate),dur); _toast(`⚒ ${bld.n} — ${realBuildTime(key)}s`); _addLog(`Construction : ${bld.n}`); }
+  markDirty(); onUpdate?.();
+}
+
+function finishBuild(entry,onUpdate) {
+  S.bq=S.bq.filter(q=>q.id!==entry.id);
+  const BLDGS=currentBldgs(S.era), bld=BLDGS[entry.key];
+  S.built[entry.key]=(S.built[entry.key]||0)+1;
+  if(bld.eco)  S.isp=clamp(S.isp+bld.eco,0,100);
+  if(bld.pop)  S.popMax+=Math.round(bld.pop*(S.tm.pop||1));
+  if(entry.tz&&S.zones[entry.tz]) S.zones[entry.tz].buildings.push({key:entry.key,lvl:entry.lvl});
+  const _fk = ERA_FOUNDER[S.era] || 'town_hall'; if(entry.key===_fk || entry.key==='town_hall') S.hasTH=true;
+  _toast(`✓ ${bld.n} terminée !`,'g');
+  _addLog(`${bld.n} Niv.${entry.lvl} terminée`,'g');
+  markDirty(); onUpdate?.();
+}
+
+// ── RESEARCH ─────────────────────────────────────
+function doResearch(techId,onUpdate) {
+  if(S.rq.length>=2){ _toast('Max 2 recherches simultanées','w'); return; }
+  const tech=currentTechs(S.era).find(t=>t.id===techId);
+  if(!tech||tech.done) return;
+  const cost=realTechCost(tech);
+  if(!canAfford(cost)){ _toast('Ressources insuffisantes','e'); return; }
+  pay(cost);
+  const dur=tech.t*1000*Math.max(1,techCostMult(tech.tier||1,S.day,S.era));
+  const entry={id:tech.id,start:Date.now(),dur,fin:Date.now()+dur};
+  S.rq.push(entry);
+  setTimeout(()=>finishResearch(techId,onUpdate),dur);
+  _toast(`🔬 ${tech.n} — ${Math.round(dur/1000)}s`);
+  _addLog(`Recherche : ${tech.n}`);
+  markDirty(); onUpdate?.();
+}
+
+function finishResearch(techId,onUpdate) {
+  const tech=currentTechs(S.era).find(t=>t.id===techId); if(!tech) return;
+  S.rq=S.rq.filter(q=>q.id!==techId);
+  tech.done=true;
+  if(tech.applyFn) tech.applyFn(S.tm);
+  _toast(`✓ ${tech.n} acquise !`,'g');
+  _addLog(`Technologie : ${tech.n}`,'g');
+  // Vérifier si c’est la tech clé → proposer l’avancement
+  if(tech.isKeyTech && !tech.isVictory) {
+    setTimeout(()=>_toast(`🌟 Ère maîtrisée ! Passez à l'${ERAS[S.era+1]?.name} dans Évolutions`,'g'),500);
+  }
+  if(tech.isVictory) _toast('🏆 VICTOIRE ULTIME — Transcendance !','g');
+  markDirty(); onUpdate?.();
+}
+
+// ── MARKET ────────────────────────────────────────
+function getMarketRate(fr,to){ return marketRate(fr,to,S.day,S.tm.market_discount||1); }
+
+async function doPostOffer(giveRes,giveQty,wantRes,onUpdate) {
+  if((S.res[giveRes]||0)<giveQty){ _toast('Stock insuffisant','e'); return; }
+  if((S.res.wealth||0)<MARKET_TAX_GOLD){ _toast(`Commission requise: ${MARKET_TAX_GOLD} ${ERAS[S.era].resources.wealth?.ic||'💰'}`,'e'); return; }
+  const rate=getMarketRate(giveRes,wantRes);
+  const wantQty=Math.floor(giveQty/rate);
+  if(wantQty<1){ _toast('Lot trop petit','e'); return; }
+  S.res[giveRes]-=giveQty; S.res.wealth-=MARKET_TAX_GOLD;
+  const playerName=CTX.profile?.displayName||'Joueur';
+  if(CTX.worldId) await postOffer(CTX.worldId,CTX.uid,playerName,{res:giveRes,qty:giveQty},{res:wantRes,qty:wantQty},rate,S.day);
+  else S.localOffers.push({id:'local_'+Date.now(),uid:CTX.uid||'local',playerName,give:{res:giveRes,qty:giveQty},want:{res:wantRes,qty:wantQty},rate,day:S.day,status:'open'});
+  const rDefs=ERAS[S.era].resources;
+  _toast(`📋 Offre : ${giveQty} ${rDefs[giveRes]?.ic||giveRes} → ${wantQty} ${rDefs[wantRes]?.ic||wantRes}`,'g');
+  _addLog(`Marché : ${giveQty} ${giveRes} → ${wantQty} ${wantRes}`,'g');
+  markDirty(); onUpdate?.();
+}
+
+async function doAcceptOffer(offer,onUpdate) {
+  if(offer.uid===CTX.uid){ _toast("Vous ne pouvez pas accepter votre propre offre",'e'); return; }
+  if((S.res[offer.want.res]||0)<offer.want.qty){ _toast(`Insuffisant : ${offer.want.qty} requis`,'e'); return; }
+  if((S.res.wealth||0)<MARKET_TAX_GOLD){ _toast(`Commission requise: ${MARKET_TAX_GOLD}`,'e'); return; }
+  S.res[offer.want.res]-=offer.want.qty;
+  S.res[offer.give.res]=(S.res[offer.give.res]||0)+offer.give.qty;
+  S.res.wealth-=MARKET_TAX_GOLD;
+  if(CTX.worldId&&!offer.id.startsWith('local_')) await acceptOffer(CTX.worldId,offer.id,CTX.uid,CTX.profile?.displayName||'Joueur');
+  else S.localOffers=S.localOffers.filter(o=>o.id!==offer.id);
+  _toast(`✓ Échange : +${offer.give.qty} ${ERAS[S.era].resources[offer.give.res]?.ic||offer.give.res}`,'g');
+  markDirty(); onUpdate?.();
+}
+
+async function doCancelOffer(offerId,onUpdate) {
+  if(CTX.worldId&&!offerId.startsWith('local_')){ const {cancelOffer:co}=await import('./db.js'); await co(CTX.worldId,offerId); }
+  else S.localOffers=S.localOffers.filter(o=>o.id!==offerId);
+  _toast('Offre annulée','w'); onUpdate?.();
+}
+
+// ── UTILS ─────────────────────────────────────────
+function cntB(keys) {
+  let n=0;
+  Object.values(S.zones).forEach(z=>z.buildings.forEach(b=>{ if(keys.includes(b.key)) n++; }));
+  return n;
+}
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function fmt(n){ return n>=10000?(n/1000).toFixed(1)+'k':Math.floor(n); }
+function buildPct(q){ return Math.min(100,Math.round((Date.now()-q.start)/q.dur*100)); }
+function eta(fin){ const s=Math.max(0,Math.ceil((fin-Date.now())/1000)); return s>=60?Math.floor(s/60)+'m'+('0'+(s%60)).slice(-2)+'s':s+'s'; }
+
+// ══ UI ══
+// ══════════════════════════════════════════════════
+//  TERRA — js/ui.js  v0.5.0
+// ══════════════════════════════════════════════════
+
+
+// Fondateurs d’ère (miroir de game.js)
+// ERA_FOUNDER défini plus haut
+
+// ── Init callbacks ────────────────────────────────
+setToast((m,t)  => toast(m,t));
+setAddLog((m,c) => addLog(m,c));
+
+// ── TOAST & LOG ───────────────────────────────────
+function toast(msg,type='') {
+  const w=document.getElementById('toast'); if(!w) return;
+  const e=document.createElement('div');
+  e.className='toast-item'+(type?' '+type:'');
+  e.textContent=msg; w.appendChild(e);
+  setTimeout(()=>e.remove(),3100);
+}
+function addLog(m,c='') {
+  const now=new Date();
+  S.log.push({m,c,t:now.getHours()+':'+('0'+now.getMinutes()).slice(-2)});
+  if(S.log.length>40) S.log.shift();
+}
+
+// ── NAV ───────────────────────────────────────────
+function initNav(views) {
+  document.querySelectorAll('.nb').forEach(b=>{
+    b.addEventListener('click',()=>{
+      document.querySelectorAll('.nb').forEach(x=>x.classList.remove('on'));
+      document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+      const v=document.getElementById(b.dataset.v); if(v) v.classList.add('on');
+      renderActive(views);
+    });
+  });
+}
+function renderActive(views) {
+  const id=document.querySelector('.view.on')?.id;
+  if(id&&views[id]) views[id]();
+}
+window._goTo=id=>{
+  document.querySelectorAll('.nb').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
+  const nb=document.querySelector(`[data-v="${id}"]`);
+  if(nb) nb.classList.add('on');
+  const v=document.getElementById(id); if(v) v.classList.add('on');
+};
+
+// ── TOPBAR ────────────────────────────────────────
+function updateTopbar() {
+  const ERA=ERAS[S.era], isp=Math.round(S.isp), wf=Math.round(workforce()*100);
+  const ispC=isp>70?'var(--gn)':isp>45?'#6ee7b7':isp>25?'var(--go)':'var(--rd)';
+  const ispSt=isp>70?'Florissante':isp>45?'Stable':isp>25?'Dégradée':'Critique';
+  set('sb-isp-fill',el=>el.style.cssText=`width:${isp}%;background:${ispC}`);
+  set('sb-isp-num', el=>{ el.textContent=isp; el.style.color=ispC; });
+  set('sb-isp-st',  el=>{ el.textContent=ispSt; el.style.color=ispC; });
+  set('sb-pop',     el=>el.textContent=`${S.pop} / ${S.popMax}`);
+  const pd=S.pop-S.lastPop;
+  set('sb-pop-st',el=>{ el.textContent=pd>0?`+${pd}/cy`:pd<0?`${pd}/cy`:'→ stable'; el.style.color=pd>0?'var(--gn)':pd<0?'var(--rd)':'var(--mu2)'; });
+  set('sb-wf-fill',  el=>el.style.width=wf+'%');
+  set('sb-wf-num',   el=>el.textContent=wf+'%');
+  set('sb-wf-st',    el=>el.textContent=wf<60?'⚠ faible':wf<85?'✓ correct':'★ optimal');
+  set('sb-day',      el=>el.textContent=S.day);
+  set('sb-cy',       el=>el.textContent='Cycle '+S.cycle);
+  set('tb-era',      el=>{ el.textContent=ERA.icon+' '+ERA.name; el.style.color=ERA.palette.accent; });
+  // ISP nav widget
+  set('ni-fill',el=>el.style.cssText=`width:${isp}%;background:${ispC}`);
+  set('ni-val', el=>{ el.textContent=isp; el.style.color=ispC; });
+  set('ni-st',  el=>{ el.textContent=ispSt; el.style.color=ispC; });
+}
+
+// ══════════════════════════════════════════════════
+//  OVERVIEW
+// ══════════════════════════════════════════════════
+function renderOverview() {
+  const ERA=ERAS[S.era];
+  const tb=Object.values(S.built).reduce((a,b)=>a+b,0);
+  const td=currentTechs(S.era).filter(t=>t.done).length;
+  const kt=currentKeyTech(S.era);
+  const isp=Math.round(S.isp), wf=Math.round(workforce()*100);
+
+  // Bandeau Ère
+  const eraHtml=`
+  <div style="background:linear-gradient(135deg,${ERA.palette.bg1},${ERA.palette.bg2});border:1px solid ${ERA.palette.accent}33;border-radius:8px;padding:12px 15px;margin-bottom:14px;position:relative;overflow:hidden;">
+    <div style="position:absolute;right:15px;top:50%;transform:translateY(-50%);font-size:48px;opacity:.12;">${ERA.icon}</div>
+    <div style="font-family:var(--sans);font-size:10px;color:var(--mu2);text-transform:uppercase;letter-spacing:2px;margin-bottom:3px;">Ère ${S.era+1}/10</div>
+    <div style="font-family:var(--sans);font-size:20px;font-weight:800;color:${ERA.palette.accent};letter-spacing:1px;">${ERA.icon} ${ERA.name}</div>
+    <div style="font-size:11px;color:var(--mu2);margin-top:3px;">${ERA.desc}</div>
+    ${S.eraHistory.length?`<div style="font-size:9px;color:var(--mu);margin-top:6px;">Ères précédentes : ${S.eraHistory.map(h=>h.icon||'◆'+' '+h.name).join(' → ')}</div>`:''}
+    ${kt?`<div style="margin-top:8px;padding:6px 10px;background:${kt.done?'rgba(74,222,128,.1)':'rgba(255,255,255,.04)'};border:1px solid ${kt.done?'rgba(74,222,128,.3)':ERA.palette.accent+'44'};border-radius:6px;font-size:10px;color:${kt.done?'var(--gn)':ERA.palette.accent};">
+      ${kt.done?'🌟':'🔑'} Tech clé : ${kt.n} — ${kt.done?'Prêt à avancer !':'En attente'}
+    </div>`:''}
+  </div>`;
+
+  const cards=[
+    {l:'Population',   v:`${S.pop}/${S.popMax}`,c:S.pop>=S.popMax?'w':'',   s:`${Math.ceil(S.pop/5)} nourrit. · ${Math.ceil(S.pop/6)} eau /cy`},
+    {l:"Main-d’oeuvre", v:wf+'%',                c:wf>80?'g':wf>55?'w':'p',  s:wf<60?"⚠ loger plus d’habitants":'prod × '+wf+'%'},
+    {l:'Santé Planète',v:isp+'%',                c:isp>70?'g':isp>30?'w':'r',s:isp>70?'Florissante':isp>45?'Stable':'Danger'},
+    {l:'Bâtiments',    v:tb,                     c:'',                        s:`${S.bq.length}/3 en construction`},
+    {l:'Évolutions',   v:`${td}/${currentTechs(S.era).length}`,c:'',         s:'recherches cette ère'},
+    {l:'Prestige',     v:`Ère ${S.era+1}`,       c:S.era>0?'g':'',           s:`${S.eraHistory.length} ères maîtrisées`},
+  ];
+
+  set('ov-cards',el=>el.innerHTML=eraHtml+cards.map(c=>`<div class="card"><div class="cl">${c.l}</div><div class="cv ${c.c}">${c.v}</div><div class="cs">${c.s}</div></div>`).join(''));
+  set('ov-t',el=>el.textContent=`Jour ${S.day} — Cycle ${S.cycle}`);
+
+  // Table ressources avec noms de l’ère
+  const RDEF=currentRes(S.era);
+  set('ov-res',el=>{
+    el.innerHTML=`<div class="res-head"><div class="rh">Ressource</div><div class="rh">Stock</div><div class="rh">+Prod/cy</div><div class="rh">−Cons/cy</div></div>`+
+    Object.entries(RDEF).map(([k,rr])=>{
+      const stock=Math.floor(S.res[k]||0);
+      const d=S.delta[k]||0, prod=d>0?d:0, cons=d<0?Math.abs(d):0;
+      const maxV=500, pct=Math.min(100,Math.round(stock/maxV*100));
+      const barC=pct>60?'var(--gn)':pct>25?'var(--go)':'var(--rd)';
+      return `<div class="res-row"><div class="rn">${rr.ic} ${rr.n}</div>
+        <div class="rstock"><div class="rv" id="rv-${k}">${fmt(stock)}</div>
+          <div class="rbar"><div class="rbar-fill" id="rb-${k}" style="width:${pct}%;background:${barC}"></div></div></div>
+        <div class="rd2 ${prod>0?'pos':'zero'}">${prod>0?'+'+prod:'—'}</div>
+        <div class="rd2 ${cons>0?'neg':'zero'}">${cons>0?'−'+cons:'—'}</div>
+      </div>`;
+    }).join('');
+  });
+
+  set('ov-log',el=>{
+    el.innerHTML=!S.log.length?'<div style="color:var(--mu);padding:8px 0;font-size:11px">Aucune activité.</div>':
+      S.log.slice(-25).reverse().map(l=>`<div class="log-row"><span class="log-t">${l.t}</span><span class="log-m ${l.c||''}">${l.m}</span></div>`).join('');
+  });
+}
+
+function liveUpdateRes() {
+  const RDEF=currentRes(S.era);
+  Object.keys(RDEF).forEach(k=>{
+    const vEl=document.getElementById('rv-'+k), bEl=document.getElementById('rb-'+k);
+    if(!vEl) return;
+    const cur=Math.floor(S.res[k]||0), prev=parseInt(vEl.dataset.prev||cur);
+    vEl.textContent=fmt(cur); vEl.dataset.prev=cur;
+    if(cur>prev){vEl.classList.add('up');setTimeout(()=>vEl.classList.remove('up'),500);}
+    else if(cur<prev){vEl.classList.add('dn');setTimeout(()=>vEl.classList.remove('dn'),500);}
+    if(bEl){ const pct=Math.min(100,Math.round(cur/500*100)); const barC=pct>60?'var(--gn)':pct>25?'var(--go)':'var(--rd)'; bEl.style.cssText=`width:${pct}%;background:${barC}`; }
+  });
+}
+
+// ── ZONES ─────────────────────────────────────────
+let _openZone = null;
+
+// Fondateurs par ère (dupliqué ici pour l’UI)
+// ERA_FOUNDER défini plus haut
+
+function renderZones() {
+  const el=document.getElementById('zo-list'); if(!el) return;
+  const ZDEFS=currentZones(S.era), BLDGS=currentBldgs(S.era), ERA=ERAS[S.era];
+  const zoneKeys=Object.keys(S.zones);
+  if(!_openZone||!S.zones[_openZone]) _openZone=zoneKeys[0];
+
+  // ── Onglets ──
+  const tabsHtml=zoneKeys.map(type=>{
+    const Z=ZDEFS[type]; if(!Z) return '';
+    const zone=S.zones[type], max=zone.count*Z.slots, used=zone.buildings.length, on=_openZone===type;
+    return `<div class="zo-tab ${on?'on':''}" onclick="window._zoTab('${type}')"
+      style="${on?'border-bottom-color:'+Z.col+';color:'+Z.col:''}">
+      ${Z.ic} ${Z.n}
+      <span class="zo-tab-count">${used}/${max}</span>
+    </div>`;
+  }).join('');
+
+  // ── Zone sélectionnée ──
+  const type=_openZone, zone=S.zones[type], Z=ZDEFS[type];
+  const max=zone.count*Z.slots, ecoC=Z.eco>0?'var(--gn)':Z.eco<0?'var(--rd)':'var(--mu2)';
+  const founderKey=ERA_FOUNDER[S.era]||'town_hall';
+  const freeCount=max-zone.buildings.length;
+
+  // Slots
+  let slotsHtml='';
+  for(let i=0;i<max;i++){
+    const b=zone.buildings[i];
+    if(b){
+      const bld=BLDGS[b.key];
+      const prod=bProdStr(bld);
+      const isFounder=b.key===founderKey;
+      slotsHtml+=`<div class="slot-card">
+        <div class="slot-head">
+          <div class="slot-num">${i+1}</div>
+          <div class="slot-info">
+            <div class="slot-name">${bld?.n||b.key}${b.lvl>1?' <span style="font-size:9px;color:var(--mu);font-weight:400">Niv.'+b.lvl+'</span>':''}</div>
+            ${prod?`<div class="slot-prod">${prod}</div>`:''}
+          </div>
+          <div class="slot-actions">
+            ${!isFounder?`<button class="btn-slot btn-slot-demo" onclick="window._demolish('${type}',${i})">🔨 Démanteler</button>`:''}
+          </div>
+        </div>
+      </div>`;
+    } else {
+      // Slots vides : invisibles, juste comptabilisés
+    }
+  }
+
+  // Bâtiments construisables dans cette zone
+  const zoneBldgs=Object.entries(BLDGS).filter(([,b])=>b.terrain&&b.terrain.includes(type)).map(([k,b])=>({k,...b}));
+  let buildHtml='';
+  if(zoneBldgs.length>0){
+    buildHtml=`<div class="slbl">Construire ici (${freeCount} emplacement${freeCount!==1?'s':''} libre${freeCount!==1?'s':''})</div>`;
+    const RDEF=currentRes(S.era);
+    buildHtml+=zoneBldgs.map(bld=>{
+      const lvl=S.built[bld.k]||0, inQ=S.bq.find(q=>q.key===bld.k);
+      const isFounder=bld.k===founderKey;
+      const popOk=S.pop>=bld.minPop;
+      const cost=realCost(bld.k), buildT=realBuildTime(bld.k);
+      const canDo=!inQ&&(S.hasTH||isFounder)&&popOk&&canAfford(cost)&&freeCount>0;
+      const wf=workforce();
+      let tags='';
+      if(bld.prod) Object.entries(bld.prod).filter(([,v])=>v>0).forEach(([r,v])=>{
+        const m=(S.tm[r]||1)*(S.tm.g||1)*wf, rr=RDEF[r];
+        tags+=`<span class="tag tag-cy">+${Math.round(v*m)} ${rr?.ic||r}</span>`;
+      });
+      if(bld.pop)   tags+=`<span class="tag tag-pu">+${bld.pop} \u{1F465}</span>`;
+      if(bld.eco>0) tags+=`<span class="tag tag-gn">Éco +${bld.eco}</span>`;
+      if(bld.eco<0) tags+=`<span class="tag tag-rd">Éco ${bld.eco}</span>`;
+      if(bld.minPop>0&&!popOk) tags+=`<span class="tag tag-pu">\u{1F465} min ${bld.minPop}</span>`;
+      if(buildT>0) tags+=`<span class="tag tag-go">⏱ ${buildT}s</span>`;
+      const costHtml=Object.entries(cost).map(([r,a])=>{const rr=RDEF[r]||{ic:r};return`<span class="cost ${(S.res[r]||0)<a?'miss':''}">${rr.ic} ${a}</span>`;}).join('');
+      const pct=inQ?buildPct(inQ):0;
+      let btnLbl='Construire';
+      if(inQ) btnLbl='En cours\u2026';
+      else if(isFounder&&lvl>0) btnLbl='Construit';
+      else if(freeCount<=0) btnLbl='Zone pleine';
+      return `<div class="brow ${!freeCount&&!inQ?'dim':''}">
+        <div class="bb">
+          <div class="blvl ${lvl>0?'has':''}">${lvl>0?lvl:'—'}</div>
+          <div class="bi">
+            <div class="bn">${bld.n}${isFounder&&!S.hasTH?' <span style="font-size:8px;background:rgba(34,211,238,.15);color:var(--cy);border:1px solid rgba(34,211,238,.35);border-radius:3px;padding:1px 5px;">PREMIER</span>':''}</div>
+            <div class="bd2">${bld.desc||''}</div>
+            <div class="bm">${tags}</div>
+          </div>
+          <div class="br">
+            <div class="costs">${costHtml}</div>
+            <button class="btn btn-cy" onclick="window._doBuild('${bld.k}')"
+              ${canDo&&!(isFounder&&lvl>0)?'':'disabled'}>${btnLbl}</button>
+          </div>
+        </div>
+        <div class="bp ${inQ?'on':''}" id="bp-${bld.k}">
+          <div class="bph"><div class="bpl">⚒ Construction</div><div class="bpe" id="be-${bld.k}">${inQ?eta(inQ.fin):''}</div></div>
+          <div class="bpt"><div class="bpf" id="bf-${bld.k}" style="width:${pct}%"></div></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  el.innerHTML=`
+    <div id="zo-tabs">${tabsHtml}</div>
+    <div id="zo-body">
+      <div class="zo-zone-desc">
+        <span>${Z.ic} <strong>${Z.n}</strong> — ${Z.res}</span>
+        <span style="color:${ecoC}">Éco ${Z.eco>0?'+':''}${Z.eco}</span>
+      </div>
+      <div class="slbl">Bâtiments construits <span style="color:var(--mu);font-weight:400;">(${zone.buildings.length}/${max} — ${freeCount} libre${freeCount!==1?'s':''})</span></div>
+      <div class="slot-list">${slotsHtml.trim() || '<div style="color:var(--mu);font-size:11px;padding:8px 0;font-style:italic;">Aucun bâtiment — '+freeCount+' emplacement'+(freeCount>1?'s':'')+' disponible'+(freeCount>1?'s':'')+'.</div>'}</div>
+      ${buildHtml}
+    </div>`;
+}
+
+window._zoTab=(type)=>{ _openZone=type; renderZones(); };
+window._doBuild=k=>{ doBuild(k,()=>renderZones()); };
+
+// ── Modale de confirmation générique ──
+function showConfirm({icon='⚠️', title, msg, warn='', confirmLbl='Confirmer', confirmCls='btn-rd', onConfirm}) {
+  const ov=document.getElementById('confirm-overlay');
+  document.getElementById('confirm-icon').textContent=icon;
+  document.getElementById('confirm-title').textContent=title;
+  document.getElementById('confirm-msg').textContent=msg;
+  const warnEl=document.getElementById('confirm-warn');
+  warnEl.textContent=warn; warnEl.style.display=warn?'block':'none';
+  const btns=document.getElementById('confirm-btns');
+  btns.innerHTML=`
+    <button class="btn btn-ghost" onclick="document.getElementById('confirm-overlay').classList.remove('on')">Annuler</button>
+    <button class="btn ${confirmCls}" id="confirm-ok">${confirmLbl}</button>`;
+  document.getElementById('confirm-ok').onclick=()=>{ ov.classList.remove('on'); onConfirm(); };
+  ov.classList.add('on');
+  ov.onclick=e=>{ if(e.target===ov) ov.classList.remove('on'); };
+}
+
+window._demolish=(zoneType,slotIdx)=>{
+  const zone=S.zones[zoneType]; if(!zone) return;
+  const b=zone.buildings[slotIdx]; if(!b) return;
+  const BLDGS=currentBldgs(S.era), bld=BLDGS[b.key]; if(!bld) return;
+
+  const cost=realCost(b.key);
+  const refund=Object.entries(cost).map(([r,a])=>{
+    const rr=ERAS[S.era].resources[r]||{ic:r};
+    return `${Math.floor(a*0.5)} ${rr.ic}`;
+  }).join(' · ');
+
+  showConfirm({
+    icon:'🔨',
+    title:`Démanteler ${bld.n} ?`,
+    msg:`50% du coût sera remboursé : ${refund}`,
+    warn: b.key===(ERA_FOUNDER[S.era]||'town_hall') ? '⚠ Ceci est le bâtiment fondateur — toutes les autres constructions seront bloquées.' : '',
+    confirmLbl:'Démanteler',
+    confirmCls:'btn-rd',
+    onConfirm:()=>{
+      Object.entries(cost).forEach(([r,a])=>S.res[r]=(S.res[r]||0)+Math.floor(a*0.5));
+      if(bld.eco) S.isp=Math.min(100,Math.max(0,S.isp-bld.eco));
+      if(bld.pop) S.popMax=Math.max(S.pop,S.popMax-Math.round(bld.pop*(S.tm.pop||1)));
+      zone.buildings.splice(slotIdx,1);
+      const founderKey=ERA_FOUNDER[S.era]||'town_hall';
+      if(b.key===founderKey) S.hasTH=false;
+      if(S.built[b.key]>0) S.built[b.key]--;
+      S.dirty=true;
+      addLog(`${bld.n} démantelée — remboursement : ${refund}`,'w');
+      renderZones(); updateTopbar();
+    }
+  });
+};
+
+// ── BUILD ─────────────────────────────────────────
+function renderBuild() {
+  set('q-cnt',el=>el.textContent=S.bq.length);
+  const BLDGS=currentBldgs(S.era), ERA=ERAS[S.era];
+  const cats={};
+  Object.entries(BLDGS).forEach(([k,b])=>{ if(!cats[b.cat])cats[b.cat]=[]; cats[b.cat].push({k,...b}); });
+
+  const diff=S.day<=10?'Normal':S.day<=30?'Modéré':S.day<=60?'Difficile':S.day<=100?'Ardu':'Extrême';
+  const diffC=S.day<=10?'var(--gn)':S.day<=30?'var(--go)':S.day<=60?'var(--rd)':'var(--pu)';
+
+  let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:7px 10px;background:var(--bg1);border:1px solid var(--bd);border-radius:6px;">
+    <span style="font-size:10px;color:var(--mu2)">${ERA.icon} <strong style="color:var(--tx)">${ERA.name}</strong> — Jour ${S.day}</span>
+    <span style="font-size:9px;padding:2px 8px;border-radius:10px;background:${diffC}18;color:${diffC};border:1px solid ${diffC}44">⚔ ${diff}</span>
+  </div>`;
+
+  const RDEF=currentRes(S.era);
+  Object.entries(cats).forEach(([cat,list])=>{
+    html+=`<div class="bcat"><div class="slbl">${cat}</div>`;
+    list.forEach(bld=>{
+      const lvl=S.built[bld.k]||0, inQ=S.bq.find(q=>q.key===bld.k);
+      const prereqOk=checkPrereq(bld.k);
+      const terrainOk=bld.terrain.some(t=>freeSlots(t)>0);
+      const popOk=S.pop>=bld.minPop;
+      const cost=realCost(bld.k), buildT=realBuildTime(bld.k);
+      const founderKey=ERA_FOUNDER[S.era]||'town_hall';
+      const isFounder=bld.k===founderKey;
+      const canDo=!inQ&&prereqOk&&terrainOk&&popOk&&canAfford(cost)&&(S.hasTH||isFounder);
+      const wf=workforce();
+
+      let tags='';
+      if(bld.prod) Object.entries(bld.prod).filter(([,v])=>v>0).forEach(([r,v])=>{
+        const m=(S.tm[r]||1)*(S.tm.g||1)*wf;
+        const rr=RDEF[r];
+        tags+=`<span class="tag tag-cy">+${Math.round(v*m)} ${rr?.ic||r}</span>`;
+      });
+      if(bld.pop)   tags+=`<span class="tag tag-pu">+${bld.pop} 👥</span>`;
+      if(bld.eco>0) tags+=`<span class="tag tag-gn">Éco +${bld.eco}</span>`;
+      if(bld.eco<0) tags+=`<span class="tag tag-rd">Éco ${bld.eco}</span>`;
+      if(bld.minPop>0) tags+=`<span class="tag ${popOk?'tag-mu':'tag-pu'}">👥 ${bld.minPop}+</span>`;
+      bld.terrain.forEach(t=>{ const Z=currentZones(S.era)[t]; tags+=`<span class="tag tag-mu">${Z?.ic||t}</span>`; });
+      if(buildT>0) tags+=`<span class="tag tag-go">⏱ ${buildT}s</span>`;
+
+      const costHtml=Object.entries(cost).map(([r,a])=>{
+        const rr=RDEF[r]||{ic:r};
+        return `<span class="cost ${(S.res[r]||0)<a?'miss':''}">${rr.ic} ${a}</span>`;
+      }).join('');
+      const pct=inQ?buildPct(inQ):0;
+      let btnClass='btn-cy', btnLbl='Construire';
+      if(inQ){btnLbl='En cours…';btnClass='btn-go';}
+      else if(isFounder&&lvl>0){btnLbl='Construit';}
+
+      html+=`<div class="brow ${!prereqOk||(!popOk&&lvl===0)?'dim':''}">
+        <div class="bb">
+          <div class="blvl ${lvl>0?'has':''}">${lvl>0?lvl:'—'}</div>
+          <div class="bi"><div class="bn">${bld.n}${isFounder&&!S.hasTH?' <span style="font-size:8px;background:rgba(34,211,238,.15);color:var(--cy);border:1px solid rgba(34,211,238,.35);border-radius:3px;padding:1px 5px;letter-spacing:.5px;">PREMIER</span>':''}</div><div class="bd2">${bld.desc||''}</div><div class="bm">${tags}</div></div>
+          <div class="br">
+            <div class="costs">${costHtml}</div>
+            ${prereqOk?`<button class="btn ${btnClass}" onclick="window._doBuild('${bld.k}')" ${canDo&&!(isFounder&&lvl>0)?'':'disabled'}>${btnLbl}</button>`
+                      :`<div style="font-size:9px;color:var(--mu)">Prérequis manquant</div>`}
+          </div>
+        </div>
+        <div class="bp ${inQ?'on':''}" id="bp-${bld.k}">
+          <div class="bph"><div class="bpl">⚒ Construction</div><div class="bpe" id="be-${bld.k}">${inQ?eta(inQ.fin):''}</div></div>
+          <div class="bpt"><div class="bpf" id="bf-${bld.k}" style="width:${pct}%"></div></div>
+        </div>
+      </div>`;
+    });
+    html+='</div>';
+  });
+  set('bd-list',el=>el.innerHTML=html);
+}
+window._doBuild=k=>{ doBuild(k,()=>renderBuild()); };
+
+// ── TECH ──────────────────────────────────────────
+function renderTech() {
+  const ERA=ERAS[S.era], TECHS=currentTechs(S.era), RDEF=currentRes(S.era);
+  const kt=currentKeyTech(S.era);
+  const nextEra=ERAS[S.era+1];
+  let html='';
+
+  // Bouton avancement si tech clé débloquée
+  if(kt?.done && nextEra) {
+    html+=`<div style="background:linear-gradient(135deg,${ERA.palette.accent}18,${ERA.palette.bg2});border:2px solid ${ERA.palette.accent}55;border-radius:10px;padding:14px 16px;margin-bottom:16px;text-align:center;">
+      <div style="font-family:var(--sans);font-size:16px;font-weight:800;color:${ERA.palette.accent};margin-bottom:6px;">🌟 Ère Maîtrisée !</div>
+      <div style="font-size:11px;color:var(--mu2);margin-bottom:12px;">Vous êtes prêt à passer à <strong style="color:${nextEra.palette.accent}">${nextEra.icon} ${nextEra.name}</strong><br>
+      Bonus : +${Math.floor(S.pop*0.3)+ERA.eraBonus.popBonus} pop · Prod ×${ERA.eraBonus.prodMult} · ${Math.round(ERA.eraBonus.resBonus*100)}% ressources conservées</div>
+      <button class="btn btn-cy" onclick="window._advanceEra()" style="font-size:13px;padding:10px 28px;justify-content:center;width:100%;">
+        🚀 Passer à l'${nextEra.name}
+      </button>
+    </div>`;
+  }
+
+  html+=`<div style="margin-bottom:16px"><div class="slbl">Recherches — ${ERA.name}</div>`;
+  TECHS.forEach(t=>{
+    const preOk=t.req.every(r=>TECHS.find(x=>x.id===r)?.done);
+    const inQ=S.rq.find(q=>q.id===t.id);
+    const cost=realTechCost(t);
+    const canR=!t.done&&!inQ&&preOk&&canAfford(cost);
+    const costHtml=Object.entries(cost).map(([r,a])=>{
+      const rr=RDEF[r]||{ic:r};
+      return `<span class="cost ${(S.res[r]||0)<a?'miss':''}">${rr.ic} ${a}</span>`;
+    }).join('');
+    const pct=inQ?buildPct(inQ):0;
+    const isKey=t.isKeyTech;
+    html+=`<div class="trow ${!preOk&&!t.done?'dim':''}" style="${isKey?`border-color:${ERA.palette.accent}44;`:''}">
+      <div class="tb">
+        <div class="tstripe" style="background:${t.col}${isKey?';width:4px':''}"></div>
+        <div class="ti2">
+          <div class="tn ${t.done?'done':''}" style="${isKey?'font-size:14px;':''}">
+            ${isKey?'🔑 ':''}<strong>${t.n}</strong>
+          </div>
+          <div class="te2">${t.effect}</div>
+          ${t.req.length?`<div class="treq">Prérequis : ${t.req.map(r=>TECHS.find(x=>x.id===r)?.n||r).join(', ')}</div>`:''}
+        </div>
+        <div class="sc ${t.done?'sc-done':!preOk?'sc-lk':'sc-av'}">${t.done?'✓':!preOk?'🔒':'Dispo'}</div>
+        ${!t.done&&preOk?`<div class="tr2">
+          <div class="costs">${costHtml}</div>
+          <button class="btn ${isKey?'btn-cy':'btn-go'}" onclick="window._doResearch('${t.id}')" ${canR?'':'disabled'}>${inQ?'En cours…':'Rechercher'}</button>
+        </div>`:''}
+      </div>
+      ${inQ?`<div class="bp on"><div class="bph"><div class="bpl">🔬 Recherche</div><div class="bpe" id="re-${t.id}">${eta(inQ.fin)}</div></div><div class="bpt"><div class="bpf" id="rf-${t.id}" style="width:${pct}%;background:var(--cy)"></div></div></div>`:''}
+    </div>`;
+  });
+  html+='</div>';
+  set('te-list',el=>el.innerHTML=html);
+}
+window._doResearch=id=>{ doResearch(id,()=>renderTech()); };
+window._advanceEra=()=>{ advanceEra(()=>{ renderOverview(); renderBuild(); renderTech(); renderZones(); updateTopbar(); }); };
+
+// ── ECONOMY ───────────────────────────────────────
+function renderEco() {
+  const wf=workforce(), RDEF=currentRes(S.era);
+  const prod={}, cons={};
+  Object.keys(RDEF).forEach(k=>{prod[k]=0;cons[k]=0;});
+  const BLDGS=currentBldgs(S.era);
+  Object.values(S.zones).forEach(z=>z.buildings.forEach(b=>{
+    const bld=BLDGS[b.key]; if(!bld?.prod) return;
+    Object.entries(bld.prod).forEach(([r,v])=>{
+      const m=(S.tm[r]||1)*(S.tm.g||1)*wf, av=Math.round(v*m);
+      if(av>0) prod[r]=(prod[r]||0)+av; else cons[r]=(cons[r]||0)+Math.abs(av);
+    });
+  }));
+  cons.food+=Math.ceil(S.pop/5); cons.water+=Math.ceil(S.pop/6);
+
+  // Prestige info
+  const totalMult = (S.tm.g||1).toFixed(2);
+  let html=`<div style="background:var(--bg1);border:1px solid var(--bd);border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:10px;color:var(--mu2);">
+    Main-d’oeuvre : <span style="color:var(--pu);font-weight:600">${Math.round(wf*100)}%</span>
+    &nbsp;·&nbsp; Multiplicateur prestige : <span style="color:var(--go);font-weight:600">×${totalMult}</span>
+    &nbsp;·&nbsp; Ères maîtrisées : <span style="color:var(--cy)">${S.eraHistory.length}</span>
+  </div>
+  <div class="etable"><div class="eth"><div class="ehd">Ressource</div><div class="ehd">Stock</div><div class="ehd">+Prod</div><div class="ehd">−Cons</div><div class="ehd">Bilan/cy</div></div>`;
+
+  Object.entries(RDEF).forEach(([k,rr])=>{
+    const p=prod[k]||0,c=cons[k]||0,net=p-c;
+    html+=`<div class="erow"><div class="ern">${rr.ic} ${rr.n}</div>
+      <div class="erv">${fmt(S.res[k]||0)}</div>
+      <div class="erv pos">${p>0?'+'+p:'—'}</div>
+      <div class="erv neg">${c>0?'−'+c:'—'}</div>
+      <div class="erv ${net>0?'pos':net<0?'neg':'zero'}">${net===0?'—':(net>0?'+':'')+net+'/cy'}</div>
+    </div>`;
+  });
+  html+=`</div>`;
+
+  // Historique des ères
+  if(S.eraHistory.length) {
+    html+=`<div class="slbl" style="margin-top:14px">Ères maîtrisées</div>`;
+    S.eraHistory.forEach((h,i)=>{
+      const e=ERAS[h.era];
+      html+=`<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:var(--bg1);border:1px solid var(--bd);border-radius:6px;margin-bottom:4px;font-size:11px;">
+        <span style="font-size:16px">${e.icon}</span>
+        <div style="flex:1;"><div style="color:var(--tx)">${e.name}</div><div style="color:var(--mu);font-size:9px;">Complétée Jour ${h.completedDay}</div></div>
+        <div style="color:var(--go);font-size:10px;">×${e.eraBonus.prodMult} prod</div>
+      </div>`;
+    });
+  }
+  set('ec-list',el=>el.innerHTML=html);
+}
+
+// ── MARCHÉ ────────────────────────────────────────
+let _marketOffers=[];
+function setMarketOffers(offers){ _marketOffers=offers; }
+
+
+// ── MARCHÉ SOLO ──
+// Acheter des ressources à l'IA : taux très mauvais (pénalité x3)
+// Vendre à l'IA : taux encore pires (x0.2 de la valeur)
+function soloMarketBuyPrice(toRes, qty) {
+  // Pour acheter QTY de toRes, combien de "wealth" faut-il payer ?
+  const baseVal = RES_VALUE[toRes] || 1;
+  const dayMult = 1 + Math.floor(S.day/10) * 0.05;
+  return Math.ceil(qty * baseVal * 3.5 * dayMult); // très cher
+}
+function soloMarketSellPrice(fromRes, qty) {
+  // Vendre QTY de fromRes, combien de "wealth" reçoit-on ?
+  const baseVal = RES_VALUE[fromRes] || 1;
+  return Math.floor(qty * baseVal * 0.25); // très peu
+}
+
+
+let _mktTab = 'solo'; // 'solo' | 'players' | 'chat'
+let _chatMsgs = [];
+function setChatMsgs(msgs) { _chatMsgs = msgs; }
+
+function renderMarket() {
+  const ERA=ERAS[S.era], RDEF=currentRes(S.era);
+  const resKeys=Object.keys(RDEF);
+  const wealthIc=RDEF.wealth?.ic||'💰';
+  const wealthN =RDEF.wealth?.n||'Richesse';
+  const myWealth=Math.floor(S.res.wealth||0);
+
+  // Onglets
+  const tabs = [
+    { id:'solo',    label:'🏪 Marché IA' },
+    { id:'players', label:'🤝 Joueurs' },
+    { id:'chat',    label:'💬 Chat' },
+  ];
+  let html = `<div style="display:flex;gap:0;border-bottom:1px solid var(--bd2);margin-bottom:14px;">
+    ${tabs.map(t=>`<div onclick="window._mktSetTab('${t.id}')" style="padding:9px 14px;cursor:pointer;font-family:var(--sans);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid ${_mktTab===t.id?'var(--cy)':'transparent'};color:${_mktTab===t.id?'var(--cy)':'var(--mu2)'};transition:all .13s;">${t.label}</div>`).join('')}
+  </div>`;
+
+  // ── ONGLET 1 : MARCHÉ SOLO ──
+  if (_mktTab === 'solo') {
+    html += `<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:6px;padding:10px 13px;margin-bottom:14px;font-size:11px;color:var(--go);">
+      ⚠️ Marché IA — taux très défavorables. Utilisez-le uniquement en urgence.<br>
+      <span style="color:var(--mu);font-size:10px;">Votre trésor : <strong style="color:${wealthIc==='💰'?'var(--go)':'var(--cy)'};">${myWealth} ${wealthIc}</strong></span>
+    </div>`;
+
+    // Section ACHETER
+    html += `<div class="slbl">Acheter (payer en ${wealthN})</div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:14px;">
+      ${resKeys.filter(k=>k!=='wealth').map(k=>{
+        const rr=RDEF[k];
+        const price10=soloMarketBuyPrice(k,10);
+        const canBuy=myWealth>=price10;
+        return `<div style="background:var(--bg1);border:1px solid var(--bd2);border-radius:7px;padding:9px 11px;display:flex;align-items:center;gap:8px;">
+          <span style="font-size:18px;">${rr.ic}</span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:11px;font-weight:600;">${rr.n}</div>
+            <div style="font-size:9px;color:var(--mu);">10 unités = ${price10} ${wealthIc}</div>
+          </div>
+          <button class="btn btn-go" style="font-size:10px;padding:4px 9px;" onclick="window._mktSoloBuy('${k}',10)" ${canBuy?'':'disabled'}>Acheter</button>
+        </div>`;
+      }).join('')}
+    </div>`;
+
+    // Section VENDRE
+    html += `<div class="slbl">Vendre (recevoir ${wealthN})</div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;">
+      ${resKeys.filter(k=>k!=='wealth').map(k=>{
+        const rr=RDEF[k];
+        const stock=Math.floor(S.res[k]||0);
+        const earn50=soloMarketSellPrice(k,50);
+        const canSell=stock>=50;
+        return `<div style="background:var(--bg1);border:1px solid var(--bd2);border-radius:7px;padding:9px 11px;display:flex;align-items:center;gap:8px;">
+          <span style="font-size:18px;">${rr.ic}</span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:11px;font-weight:600;">${rr.n} <span style="color:var(--mu);font-weight:400;">(${stock})</span></div>
+            <div style="font-size:9px;color:var(--mu);">50 → ${earn50} ${wealthIc}</div>
+          </div>
+          <button class="btn btn-ghost" style="font-size:10px;padding:4px 9px;" onclick="window._mktSoloSell('${k}',50)" ${canSell?'':'disabled'}>Vendre</button>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  // ── ONGLET 2 : OFFRES JOUEURS ──
+  else if (_mktTab === 'players') {
+    const myOffers=_marketOffers.filter(o=>o.uid===CTX.uid);
+    const othersOffers=_marketOffers.filter(o=>o.uid!==CTX.uid);
+
+    html += `<div class="slbl">Poster une offre</div>
+    <div style="background:var(--bg1);border:1px solid var(--bd2);border-radius:6px;padding:12px;margin-bottom:14px;">
+      <div style="display:grid;grid-template-columns:1fr 70px 1fr auto;gap:8px;align-items:end;margin-bottom:10px;">
+        <div>
+          <div style="font-size:8px;color:var(--mu);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:4px;">Je donne</div>
+          <select id="mkt-give-res" class="input" style="font-size:12px;padding:6px 8px;">
+            ${resKeys.map(k=>`<option value="${k}">${RDEF[k]?.ic||k} ${RDEF[k]?.n||k} (${Math.floor(S.res[k]||0)})</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <div style="font-size:8px;color:var(--mu);text-transform:uppercase;margin-bottom:4px;">Qté</div>
+          <select id="mkt-give-qty" class="input" style="font-size:12px;padding:6px;width:70px;">
+            ${MARKET_LOTS.map(q=>`<option value="${q}">${q}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <div style="font-size:8px;color:var(--mu);text-transform:uppercase;margin-bottom:4px;">Je veux</div>
+          <select id="mkt-want-res" class="input" style="font-size:12px;padding:6px 8px;">
+            ${resKeys.map((k,i)=>`<option value="${k}" ${i===4?'selected':''}>${RDEF[k]?.ic||k} ${RDEF[k]?.n||k}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <div style="font-size:8px;color:var(--mu);text-transform:uppercase;margin-bottom:4px;">Reçoit</div>
+          <div id="mkt-preview" style="font-size:15px;font-weight:600;color:var(--cy);padding:5px 0;">—</div>
+        </div>
+      </div>
+      <button class="btn btn-cy" onclick="window._mktPost()" style="width:100%;justify-content:center;">📋 Poster</button>
+    </div>
+
+    ${myOffers.length?`<div class="slbl">Mes offres (${myOffers.length})</div>
+    ${myOffers.map(o=>`<div style="background:var(--bg1);border:1px solid rgba(34,211,238,.2);border-radius:6px;padding:9px 12px;margin-bottom:5px;display:flex;align-items:center;gap:10px;">
+      <div style="flex:1;font-size:11px;">
+        <span style="color:var(--rd)">${o.give.qty} ${RDEF[o.give.res]?.ic||o.give.res}</span>
+        <span style="color:var(--mu);margin:0 6px">→</span>
+        <span style="color:var(--gn)">${o.want.qty} ${RDEF[o.want.res]?.ic||o.want.res}</span>
+      </div>
+      <button class="btn btn-ghost" style="font-size:10px;padding:3px 9px;" onclick="window._mktCancel('${o.id}')">✕</button>
+    </div>`).join('')}`:''}
+
+    <div class="slbl">Offres disponibles (${othersOffers.length})</div>
+    ${!othersOffers.length?'<div style="color:var(--mu);padding:14px 0;text-align:center;font-size:11px;">Aucune offre joueur.</div>':''}
+    ${othersOffers.map(o=>`
+    <div style="background:var(--bg1);border:1px solid var(--bd2);border-radius:6px;padding:10px 12px;margin-bottom:5px;display:flex;align-items:center;gap:10px;">
+      <div style="flex:1;">
+        <div style="font-size:9px;color:var(--mu);">${o.playerName}</div>
+        <div style="font-size:13px;font-weight:600;">Donne ${o.give.qty} ${RDEF[o.give.res]?.ic||o.give.res} → Veut ${o.want.qty} ${RDEF[o.want.res]?.ic||o.want.res}</div>
+      </div>
+      <button class="btn btn-gn" style="font-size:11px;padding:5px 12px;"
+        onclick="window._mktAccept(${JSON.stringify(o).replace(/"/g,'&quot;')})"
+        ${(S.res[o.want.res]||0)>=o.want.qty&&(S.res.wealth||0)>=MARKET_TAX_GOLD?'':'disabled'}>Accepter</button>
+    </div>`).join('')}`;
+
+    // Rebind preview
+    setTimeout(()=>{
+      const up=()=>{
+        const gR=document.getElementById('mkt-give-res')?.value;
+        const gQ=parseInt(document.getElementById('mkt-give-qty')?.value||0);
+        const wR=document.getElementById('mkt-want-res')?.value;
+        const prev=document.getElementById('mkt-preview'); if(!prev) return;
+        if(gR===wR){prev.textContent='—';return;}
+        const rate=getMarketRate(gR,wR),qty=Math.floor(gQ/rate),rr=RDEF[wR];
+        prev.textContent=qty>0?`~${qty} ${rr?.ic||''}`:'-';
+        prev.style.color=qty>0?'var(--cy)':'var(--rd)';
+      };
+      ['mkt-give-res','mkt-give-qty','mkt-want-res'].forEach(id=>document.getElementById(id)?.addEventListener('change',up));
+      up();
+    },50);
+  }
+
+  // ── ONGLET 3 : CHAT + PROPOSITIONS ──
+  else if (_mktTab === 'chat') {
+    const msgs = _chatMsgs || [];
+    const pname = CTX.profile?.displayName || 'Joueur';
+
+    html += `
+    <!-- Messages -->
+    <div id="chat-msgs" style="background:var(--bg1);border:1px solid var(--bd2);border-radius:8px;padding:10px;height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
+      ${!msgs.length?'<div style="color:var(--mu);font-size:11px;text-align:center;margin:auto;">Aucun message</div>':''}
+      ${msgs.map(m=>{
+        const isMe = m.uid===CTX.uid;
+        const ts   = m.ts?.toDate ? m.ts.toDate().toLocaleTimeString('fr',{hour:'2-digit',minute:'2-digit'}) : '';
+        if (m.trade) {
+          // Message de proposition d'échange
+          const tr=m.trade;
+          const rGive=RDEF[tr.giveRes], rWant=RDEF[tr.wantRes];
+          const canAccept = !isMe && m.tradeStatus==='pending'
+            && (S.res[tr.wantRes]||0)>=tr.wantQty;
+          return `<div style="background:${isMe?'rgba(34,211,238,.08)':'var(--bg2)'};border:1px solid ${m.tradeStatus==='done'?'rgba(52,211,153,.3)':isMe?'rgba(34,211,238,.2)':'var(--bd)'};border-radius:8px;padding:9px 11px;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+              <span style="font-size:10px;font-weight:600;color:${isMe?'var(--cy)':'var(--go)'};">${m.name}</span>
+              <span style="font-size:9px;color:var(--mu);">${ts}</span>
+              <span style="font-size:9px;padding:1px 6px;border-radius:4px;background:${m.tradeStatus==='done'?'rgba(52,211,153,.15)':'rgba(245,158,11,.1)'};color:${m.tradeStatus==='done'?'var(--gn)':'var(--go)'};">${m.tradeStatus==='done'?'✓ Accepté':'Proposition'}</span>
+            </div>
+            <div style="font-size:12px;font-weight:600;margin-bottom:${canAccept?'8':'0'}px;">
+              Offre ${rGive?.ic||tr.giveRes} ${tr.giveQty} ${rGive?.n||tr.giveRes}
+              <span style="color:var(--mu);margin:0 6px;">contre</span>
+              ${rWant?.ic||tr.wantRes} ${tr.wantQty} ${rWant?.n||tr.wantRes}
+            </div>
+            ${canAccept?`<button class="btn btn-gn" style="font-size:11px;padding:5px 14px;" onclick="window._chatAcceptTrade('${m.id}',${JSON.stringify(tr).replace(/"/g,'&quot;')})">✓ Accepter cet échange</button>`:''}
+            ${!canAccept&&!isMe&&m.tradeStatus==='pending'?`<div style="font-size:10px;color:var(--rd);">Stock insuffisant (${Math.floor(S.res[tr.wantRes]||0)}/${tr.wantQty} ${rWant?.ic||''})</div>`:''}
+          </div>`;
+        }
+        return `<div style="display:flex;gap:6px;align-items:flex-start;${isMe?'flex-direction:row-reverse;':''}">
+          <div style="width:26px;height:26px;border-radius:50%;background:${isMe?'var(--cy)':'var(--bg4)'};display:flex;align-items:center;justify-content:center;font-family:var(--sans);font-size:10px;font-weight:800;color:${isMe?'var(--bg)':'var(--mu2)'};flex-shrink:0;">${(m.name||'?')[0].toUpperCase()}</div>
+          <div style="max-width:75%;">
+            <div style="font-size:9px;color:var(--mu);margin-bottom:2px;${isMe?'text-align:right;':''}">${m.name} · ${ts}</div>
+            <div style="background:${isMe?'rgba(34,211,238,.1)':'var(--bg2)'};border:1px solid ${isMe?'rgba(34,211,238,.2)':'var(--bd)'};border-radius:8px;padding:7px 10px;font-size:12px;">${m.text}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- Input message normal -->
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <input id="chat-input" class="input" placeholder="Message..." style="font-size:12px;padding:8px 10px;"
+        onkeydown="if(event.key==='Enter')window._chatSend()">
+      <button class="btn btn-cy" style="flex-shrink:0;" onclick="window._chatSend()">Envoyer</button>
+    </div>
+
+    <!-- Proposer un échange -->
+    <div style="background:var(--bg1);border:1px solid rgba(245,158,11,.25);border-radius:8px;padding:11px 13px;">
+      <div style="font-size:10px;font-weight:700;color:var(--go);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">💱 Proposer un échange</div>
+      <div style="display:grid;grid-template-columns:1fr 60px 1fr 60px;gap:6px;margin-bottom:8px;align-items:end;">
+        <div>
+          <div style="font-size:8px;color:var(--mu);text-transform:uppercase;margin-bottom:3px;">Je donne</div>
+          <select id="chat-give-res" class="input" style="font-size:11px;padding:5px 7px;">
+            ${resKeys.map(k=>`<option value="${k}">${RDEF[k]?.ic||k} ${RDEF[k]?.n||k}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <div style="font-size:8px;color:var(--mu);text-transform:uppercase;margin-bottom:3px;">Qté</div>
+          <input id="chat-give-qty" type="number" class="input" value="10" min="1" style="font-size:12px;padding:5px;">
+        </div>
+        <div>
+          <div style="font-size:8px;color:var(--mu);text-transform:uppercase;margin-bottom:3px;">Contre</div>
+          <select id="chat-want-res" class="input" style="font-size:11px;padding:5px 7px;">
+            ${resKeys.map((k,i)=>`<option value="${k}" ${i===4?'selected':''}>${RDEF[k]?.ic||k} ${RDEF[k]?.n||k}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <div style="font-size:8px;color:var(--mu);text-transform:uppercase;margin-bottom:3px;">Qté</div>
+          <input id="chat-want-qty" type="number" class="input" value="10" min="1" style="font-size:12px;padding:5px;">
+        </div>
+      </div>
+      <button class="btn btn-go" style="width:100%;justify-content:center;" onclick="window._chatProposeTrade()">💱 Envoyer la proposition dans le chat</button>
+    </div>`;
+
+    // Auto-scroll
+    setTimeout(()=>{
+      const el=document.getElementById('chat-msgs');
+      if(el) el.scrollTop=el.scrollHeight;
+    },50);
+  }
+
+  set('mkt-list', el=>el.innerHTML=html);
+}
+
+// ── HANDLERS MARCHÉ SOLO ──
+window._mktSetTab = tab => { _mktTab=tab; renderMarket(); };
+
+window._mktSoloBuy = (res, qty) => {
+  const RDEF=currentRes(S.era);
+  const price=soloMarketBuyPrice(res,qty);
+  if((S.res.wealth||0)<price){ toast('Pas assez de '+RDEF.wealth.n,'e'); return; }
+  S.res.wealth = (S.res.wealth||0) - price;
+  S.res[res]   = (S.res[res]||0) + qty;
+  S.dirty=true;
+  toast(`Acheté ${qty} ${RDEF[res].ic} pour ${price} ${RDEF.wealth.ic}`,'g');
+  addLog(`Marché IA : achat ${qty} ${res}`,'g');
+  renderMarket();
+  updateTopbar();
+};
+
+window._mktSoloSell = (res, qty) => {
+  const RDEF=currentRes(S.era);
+  if((S.res[res]||0)<qty){ toast('Stock insuffisant','e'); return; }
+  const earn=soloMarketSellPrice(res,qty);
+  S.res[res]   -= qty;
+  S.res.wealth  = (S.res.wealth||0) + earn;
+  S.dirty=true;
+  toast(`Vendu ${qty} ${RDEF[res].ic} → ${earn} ${RDEF.wealth.ic}`,'g');
+  addLog(`Marché IA : vente ${qty} ${res} → ${earn} richesse`,'g');
+  renderMarket();
+  updateTopbar();
+};
+
+// ── HANDLERS CHAT ──
+window._chatSend = async () => {
+  const input=document.getElementById('chat-input');
+  const text=(input?.value||'').trim();
+  if(!text) return;
+  input.value='';
+  const pname=CTX.profile?.displayName||'Joueur';
+  if(CTX.worldId) {
+    await sendChatMsg(CTX.worldId,CTX.uid,pname,text,null);
+  } else {
+    // Mode local : afficher dans _chatMsgs
+    _chatMsgs.push({id:'local_'+Date.now(),uid:CTX.uid,name:pname,text,ts:null,trade:null});
+    renderMarket();
+  }
+};
+
+window._chatProposeTrade = async () => {
+  const gRes=document.getElementById('chat-give-res')?.value;
+  const gQty=parseInt(document.getElementById('chat-give-qty')?.value||0);
+  const wRes=document.getElementById('chat-want-res')?.value;
+  const wQty=parseInt(document.getElementById('chat-want-qty')?.value||0);
+  if(gRes===wRes){ toast('Deux ressources différentes requis','e'); return; }
+  if(gQty<1||wQty<1){ toast('Quantités invalides','e'); return; }
+  if((S.res[gRes]||0)<gQty){ toast('Stock insuffisant','e'); return; }
+
+  const RDEF=currentRes(S.era);
+  const pname=CTX.profile?.displayName||'Joueur';
+  const tradeData={giveRes:gRes,giveQty:gQty,wantRes:wRes,wantQty:wQty};
+  const text=`Propose ${gQty} ${RDEF[gRes]?.n} contre ${wQty} ${RDEF[wRes]?.n}`;
+
+  if(CTX.worldId) {
+    await sendChatMsg(CTX.worldId,CTX.uid,pname,text,tradeData);
+  } else {
+    _chatMsgs.push({id:'local_'+Date.now(),uid:CTX.uid,name:pname,text,ts:null,trade:tradeData,tradeStatus:'pending'});
+    renderMarket();
+  }
+  toast('Proposition envoyée dans le chat','g');
+};
+
+window._chatAcceptTrade = async (msgId, tr) => {
+  const RDEF=currentRes(S.era);
+  // Vérifier stock
+  if((S.res[tr.wantRes]||0)<tr.wantQty){ toast('Stock insuffisant','e'); return; }
+  // Effectuer l'échange
+  S.res[tr.wantRes] -= tr.wantQty;
+  S.res[tr.giveRes]  = (S.res[tr.giveRes]||0) + tr.giveQty;
+  S.dirty=true;
+  const pname=CTX.profile?.displayName||'Joueur';
+  if(CTX.worldId) {
+    await acceptTradeInChat(CTX.worldId,msgId,CTX.uid,pname);
+  } else {
+    const msg=_chatMsgs.find(m=>m.id===msgId);
+    if(msg) msg.tradeStatus='done';
+  }
+  toast(`✓ Échange : +${tr.giveQty} ${RDEF[tr.giveRes]?.ic||tr.giveRes}`,'g');
+  addLog(`Chat : échange accepté — +${tr.giveQty} ${tr.giveRes}`,'g');
+  updateTopbar();
+  renderMarket();
+};
+
+window._mktPost=async()=>{ const gR=document.getElementById('mkt-give-res')?.value, gQ=parseInt(document.getElementById('mkt-give-qty')?.value||0), wR=document.getElementById('mkt-want-res')?.value; if(gR===wR){toast('Deux ressources différentes requis','e');return;} await doPostOffer(gR,gQ,wR,()=>renderMarket()); };
+window._mktAccept=async offer=>{ await doAcceptOffer(offer,()=>renderMarket()); };
+window._mktCancel=async id=>{ await doCancelOffer(id,()=>renderMarket()); };
+
+
+// ── DIPLO ─────────────────────────────────────────
+function renderDiplo(worldData,cities) {
+  if(!worldData) return;
+  const players=worldData.players||{};
+  let html=`<div class="slbl">Joueurs (${Object.keys(players).length}/${worldData.maxPlayers})</div>`;
+  Object.entries(players).forEach(([uid,p])=>{
+    const city=cities?.[uid], isSelf=uid===CTX.uid;
+    const [c1,c2]=avatarColor(uid), era=ERAS[city?.era||0];
+    html+=`<div class="player-card">
+      <div class="online-dot ${p.online?'':'off'}"></div>
+      <div class="pc-avatar" style="background:linear-gradient(135deg,${c1},${c2})">${getInitials(p.name)}</div>
+      <div><div class="pc-name">${p.name}</div>
+        <div class="pc-meta">${city?`${era?.icon||''} ${era?.name||'Ère ?'} · Pop. ${city.pop||0}/${city.popMax||0} · Jour ${city.day||1}`:'Pas encore connecté'}</div>
+      </div>
+      ${isSelf?'<div class="pc-self">Vous</div>':''}
+    </div>`;
+  });
+  set('di-list',el=>el.innerHTML=html);
+}
+
+// ── PROGRESS BARS ─────────────────────────────────
+function tickProgress() {
+  const BLDGS=currentBldgs(S.era);
+  S.bq.forEach(q=>{ const f=document.getElementById('bf-'+q.key), e=document.getElementById('be-'+q.key); if(f)f.style.width=buildPct(q)+'%'; if(e)e.textContent=eta(q.fin); });
+  S.rq.forEach(q=>{ const f=document.getElementById('rf-'+q.id), e=document.getElementById('re-'+q.id); if(f)f.style.width=buildPct(q)+'%'; if(e)e.textContent=eta(q.fin); });
+}
+
+// ── UTILS ─────────────────────────────────────────
+function set(id,fn){ const el=document.getElementById(id); if(el) fn(el); }
+function bProdStr(bld) {
+  if(!bld?.prod) return '';
+  const RDEF=currentRes(S.era); const wf=workforce();
+  return Object.entries(bld.prod).filter(([,v])=>v>0).map(([r,v])=>{
+    const rr=RDEF[r]||{ic:r}; const m=(S.tm[r]||1)*(S.tm.g||1)*wf;
+    return `+${Math.round(v*m)} ${rr.ic}`;
+  }).join(' · ');
+}
+
+
+// ══════════════════════════════════════════════════
+//  SYSTÈME POPULATION
+// ══════════════════════════════════════════════════
+
+// Population state — étendu au-delà de S.pop/S.popMax
+// On stocke dans S.popState
+function getPopState() {
+  if (!S.popState) {
+    S.popState = {
+      healthy: Math.floor(S.pop * 0.85),
+      sick:    Math.floor(S.pop * 0.10),
+      starving:Math.floor(S.pop * 0.05),
+      births:  0, deaths: 0,
+      history: [], // derniers 20 cycles
+      events:  [], // événements récents
+    };
+  }
+  // Recalculer à partir des ressources
+  const total = S.pop;
+  const foodOk  = S.res.food  > Math.ceil(S.pop/5)*2;
+  const waterOk = S.res.water > Math.ceil(S.pop/6)*2;
+  const ispOk   = S.isp > 50;
+  const wf      = workforce();
+
+  // Taux de maladie basé sur manque de ressources et ISP
+  const sickRate   = (!foodOk ? 0.15 : 0) + (!waterOk ? 0.12 : 0) + (!ispOk ? 0.08 : 0);
+  const starvRate  = (!foodOk && !waterOk) ? 0.10 : 0;
+  const baseHealthy = Math.max(0, 1 - sickRate - starvRate);
+
+  S.popState.sick     = Math.round(total * Math.min(0.5, sickRate));
+  S.popState.starving = Math.round(total * Math.min(0.3, starvRate));
+  S.popState.healthy  = Math.max(0, total - S.popState.sick - S.popState.starving);
+
+  // Natalité / mortalité
+  const birthRate  = foodOk && waterOk && ispOk ? 0.04 : 0.01;
+  const deathRate  = starvRate * 0.3 + (S.popState.sick > total*0.3 ? 0.02 : 0);
+  S.popState.births = Math.round(total * birthRate);
+  S.popState.deaths = Math.round(total * deathRate);
+
+  // Historique (max 20 points)
+  if (S.cycle % 3 === 0) {
+    S.popState.history.push({
+      cycle: S.cycle, day: S.day,
+      total, healthy: S.popState.healthy,
+      sick: S.popState.sick, starving: S.popState.starving,
+    });
+    if (S.popState.history.length > 24) S.popState.history.shift();
+  }
+
+  // Événements
+  if (!S.popState.events) S.popState.events = [];
+  const now = new Date();
+  const ts  = now.getHours()+':'+('0'+now.getMinutes()).slice(-2);
+  if (S.popState.sick > total * 0.35 && S.cycle % 5 === 0)
+    S.popState.events.unshift({ t:ts, m:`⚠️ Épidémie — plus d’un tiers de la pop malade`, c:'r' });
+  if (S.popState.starving > 0 && S.cycle % 5 === 0)
+    S.popState.events.unshift({ t:ts, m:`🌾 ${S.popState.starving} habitants souffrent de la faim`, c:'w' });
+  if (S.popState.deaths > 0 && S.cycle % 10 === 0)
+    S.popState.events.unshift({ t:ts, m:`💀 ${S.popState.deaths} décès ce cycle`, c:'r' });
+  if (S.popState.births > 2 && S.cycle % 10 === 0)
+    S.popState.events.unshift({ t:ts, m:`👶 ${S.popState.births} naissances ce cycle`, c:'g' });
+  if (S.popState.events.length > 15) S.popState.events = S.popState.events.slice(0,15);
+
+  return S.popState;
+}
+
+function renderPop() {
+  const ERA   = ERAS[S.era];
+  const ps    = getPopState();
+  const total = S.pop;
+  const foodOk  = S.res.food  > Math.ceil(S.pop/5)*2;
+  const waterOk = S.res.water > Math.ceil(S.pop/6)*2;
+  const ispOk   = S.isp > 50;
+  const wf      = Math.round(workforce()*100);
+  const RDEF    = currentRes(S.era);
+
+  // Barres de proportion
+  const hPct = total>0?Math.round(ps.healthy/total*100):0;
+  const sPct = total>0?Math.round(ps.sick/total*100):0;
+  const stPct= total>0?Math.round(ps.starving/total*100):0;
+
+  // Statut global
+  const status = ps.sick > total*0.35 ? { l:'Épidémie', c:'var(--rd)' }
+               : ps.starving > 0      ? { l:'Pénurie', c:'var(--go)' }
+               : !ispOk               ? { l:'Dégradée', c:'var(--go)' }
+               : ps.healthy > total*0.85 ? { l:'Florissante', c:'var(--gn)' }
+               : { l:'Stable', c:'var(--cy)' };
+
+  // Mini graphique historique en barres SVG
+  const hist = ps.history;
+  let sparkSvg = '';
+  if (hist.length > 1) {
+    const maxPop = Math.max(...hist.map(h=>h.total), 1);
+    const w2 = 260, h2 = 40, bw = Math.max(3, Math.floor(w2/hist.length)-1);
+    sparkSvg = `<svg width="${w2}" height="${h2}" style="margin-top:8px;overflow:visible;">`;
+    hist.forEach((h,i) => {
+      const hh  = Math.round(h.healthy/maxPop*h2);
+      const sh  = Math.round(h.sick/maxPop*h2);
+      const sth = Math.round(h.starving/maxPop*h2);
+      const x   = i*(bw+1);
+      sparkSvg += `<rect x="${x}" y="${h2-hh}" width="${bw}" height="${hh}" fill="#34d399" opacity=".8"/>`;
+      sparkSvg += `<rect x="${x}" y="${h2-hh-sh}" width="${bw}" height="${sh}" fill="#f59e0b" opacity=".8"/>`;
+      sparkSvg += `<rect x="${x}" y="${h2-hh-sh-sth}" width="${bw}" height="${sth}" fill="#f87171" opacity=".8"/>`;
+    });
+    sparkSvg += `</svg>`;
+  }
+
+  const html = `
+  <!-- Statut global -->
+  <div style="background:linear-gradient(135deg,${ERA.palette.bg1},${ERA.palette.bg2});border:1px solid ${ERA.palette.accent}33;border-radius:8px;padding:12px 14px;margin-bottom:14px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div>
+        <div style="font-family:var(--sans);font-size:10px;color:var(--mu2);text-transform:uppercase;letter-spacing:1.5px;">Population totale</div>
+        <div style="font-family:var(--sans);font-size:28px;font-weight:800;color:${ERA.palette.accent};line-height:1.1;">${total} <span style="font-size:14px;color:var(--mu2);">/ ${S.popMax}</span></div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Statut</div>
+        <div style="font-family:var(--sans);font-size:14px;font-weight:700;color:${status.c};">${status.l}</div>
+        <div style="font-size:10px;color:var(--mu2);margin-top:2px;">J${S.day} — Cycle ${S.cycle}</div>
+      </div>
+    </div>
+    <!-- Barre de composition -->
+    <div style="height:10px;border-radius:5px;overflow:hidden;display:flex;margin-bottom:6px;">
+      <div style="width:${hPct}%;background:#34d399;transition:width .7s;"></div>
+      <div style="width:${sPct}%;background:#f59e0b;transition:width .7s;"></div>
+      <div style="width:${stPct}%;background:#f87171;transition:width .7s;"></div>
+      <div style="flex:1;background:rgba(255,255,255,.06);"></div>
+    </div>
+    <div style="display:flex;gap:12px;font-size:9px;color:var(--mu2);">
+      <span>🟢 ${hPct}% en bonne santé</span>
+      <span>🟡 ${sPct}% malades</span>
+      ${stPct>0?`<span>🔴 ${stPct}% affamés</span>`:''}
+    </div>
+  </div>
+
+  <!-- Cartes détail -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px;">
+    <div class="card">
+      <div class="cl">✅ Bien portants</div>
+      <div class="cv g">${ps.healthy}</div>
+      <div class="cs">Main-d’oeuvre active</div>
+    </div>
+    <div class="card">
+      <div class="cl">🤒 Malades</div>
+      <div class="cv ${ps.sick>total*0.2?'r':'w'}">${ps.sick}</div>
+      <div class="cs">${ps.sick>0?'Prod. réduite':'Aucun malade'}</div>
+    </div>
+    <div class="card">
+      <div class="cl">👶 Naissances /cy</div>
+      <div class="cv g">+${ps.births}</div>
+      <div class="cs">${foodOk&&waterOk?'Conditions favorables':'Ressources insuffisantes'}</div>
+    </div>
+    <div class="card">
+      <div class="cl">💀 Décès /cy</div>
+      <div class="cv ${ps.deaths>0?'r':''}">${ps.deaths}</div>
+      <div class="cs">${ps.deaths>0?'Situation critique':'Aucun décès'}</div>
+    </div>
+    ${ps.starving>0?`<div class="card" style="grid-column:1/-1;border-color:rgba(248,113,113,.3);">
+      <div class="cl">🌾 Affamés</div>
+      <div class="cv r">${ps.starving}</div>
+      <div class="cs">Manque de nourriture ou d’eau — déclin imminent</div>
+    </div>`:''}
+  </div>
+
+  <!-- Facteurs de santé -->
+  <div class="slbl">Facteurs de bien-être</div>
+  <div style="background:var(--bg1);border:1px solid var(--bd2);border-radius:8px;overflow:hidden;margin-bottom:14px;">
+    ${[
+      { l:'Nourriture', v:foodOk, ok:'Abondante','nok':'Insuffisante',  ic:'🌾', c: foodOk?'var(--gn)':'var(--rd)' },
+      { l:'Eau',        v:waterOk, ok:'Abondante','nok':'Insuffisante', ic:'💧', c: waterOk?'var(--gn)':'var(--rd)' },
+      { l:'Santé Planète', v:ispOk, ok:Math.round(S.isp)+'%','nok':Math.round(S.isp)+'% — Dégradée', ic:'🌍', c: ispOk?'var(--gn)':'var(--go)' },
+      { l:"Main-d’oeuvre", v:wf>70, ok:wf+'% actif','nok':wf+'% — Sous-effectif', ic:'⚙️', c: wf>70?'var(--gn)':'var(--go)' },
+    ].map(f=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--bd);">
+        <span style="font-size:16px;">${f.ic}</span>
+        <div style="flex:1;"><div style="font-size:11px;color:var(--tx);">${f.l}</div></div>
+        <div style="font-size:11px;font-weight:600;color:${f.c};">${f.v?f.ok:f.nok}</div>
+        <div style="width:7px;height:7px;border-radius:50%;background:${f.c};flex-shrink:0;"></div>
+      </div>`
+    ).join('')}
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;">
+      <span style="font-size:16px;">🏠</span>
+      <div style="flex:1;"><div style="font-size:11px;color:var(--tx);">Logements</div></div>
+      <div style="font-size:11px;font-weight:600;color:${S.pop>=S.popMax?'var(--rd)':'var(--gn)'};">${S.pop}/${S.popMax} ${S.pop>=S.popMax?'— Plein':'places libres'}</div>
+      <div style="width:7px;height:7px;border-radius:50%;background:${S.pop>=S.popMax?'var(--rd)':'var(--gn)'};flex-shrink:0;"></div>
+    </div>
+  </div>
+
+  <!-- Historique graphique -->
+  <div class="slbl">Évolution (${hist.length} cycles)</div>
+  <div style="background:var(--bg1);border:1px solid var(--bd2);border-radius:8px;padding:10px 14px;margin-bottom:14px;">
+    ${hist.length>1 ? `
+      <div style="display:flex;gap:10px;font-size:9px;color:var(--mu2);margin-bottom:8px;">
+        <span style="display:flex;align-items:center;gap:3px;"><span style="width:8px;height:8px;background:#34d399;border-radius:2px;display:inline-block;"></span>Sains</span>
+        <span style="display:flex;align-items:center;gap:3px;"><span style="width:8px;height:8px;background:#f59e0b;border-radius:2px;display:inline-block;"></span>Malades</span>
+        <span style="display:flex;align-items:center;gap:3px;"><span style="width:8px;height:8px;background:#f87171;border-radius:2px;display:inline-block;"></span>Affamés</span>
+      </div>
+      <div style="overflow-x:auto;">${sparkSvg}</div>
+    ` : '<div style="font-size:11px;color:var(--mu);">Données insuffisantes — jouez quelques cycles.</div>'}
+  </div>
+
+  <!-- Journal événements population -->
+  <div class="slbl">Événements récents</div>
+  <div style="background:var(--bg1);border:1px solid var(--bd2);border-radius:8px;overflow:hidden;">
+    ${ps.events && ps.events.length ? ps.events.slice(0,8).map(e=>`
+      <div class="log-row" style="padding:6px 12px;">
+        <span class="log-t">${e.t}</span>
+        <span class="log-m ${e.c||''}">${e.m}</span>
+      </div>`).join('') :
+      '<div style="color:var(--mu);padding:12px;font-size:11px;">Aucun événement — population stable.</div>'
+    }
+  </div>`;
+
+  set('pop-list', el => el.innerHTML = html);
+}
+
+// ══ Annuler timeout de secours ══
+if (window.__clearLoadTimer) window.__clearLoadTimer();
+
+// ══ Session ══
+const sessionData = JSON.parse(sessionStorage.getItem('terra_world') || 'null');
+if (!sessionData) { window.location.href = 'index.html'; throw new Error('no session'); }
+const { worldId, uid: _uid, name } = sessionData;
+
+const hideOv = () => {
+  if (window.__clearLoadTimer) window.__clearLoadTimer();
+  const ov = document.getElementById('overlay');
+  if (ov) { ov.classList.add('hide'); setTimeout(() => ov.style.display = 'none', 350); }
+};
+
+const VIEWS = {
+  'v-ov':  () => renderOverview(),
+  'v-zo':  () => renderZones(),
+  'v-bd':  () => renderBuild(),
+  'v-te':  () => renderTech(),
+  'v-ec':  () => renderEco(),
+  'v-mkt': () => renderMarket(),
+  'v-pop': () => renderPop(),
+  'v-di':  () => renderDiplo(_worldData, _cities),
+};
+
+let _worldData=null, _cities={}, _progressInterval=null;
+let _unsubWorld=null, _unsubCities=null;
+
+onAuth(async user => {
+  if (!user) { window.location.href = 'index.html'; return; }
+  try {
+    CTX.uid     = user.uid;
+    CTX.worldId = worldId;
+    CTX.profile = { displayName: user.displayName || name };
+
+    const av = document.getElementById('tb-avatar');
+    if (av) { const [c1,c2]=avatarColor(user.uid); av.textContent=getInitials(name); av.style.background=`linear-gradient(135deg,${c1},${c2})`; }
+
+    const saved = await loadCity(worldId, user.uid);
+    loadState(saved);
+    setPlayerOnline(worldId, user.uid, true);
+
+    _unsubWorld = listenWorld(worldId, w => {
+      _worldData = w;
+      const nm=document.getElementById('tb-world-name'), cd=document.getElementById('tb-code');
+      if(nm) nm.textContent=w.name||'Monde';
+      if(cd) cd.textContent=w.code||'——';
+      if(document.querySelector('.view.on')?.id==='v-di') renderDiplo(w,_cities);
+    });
+
+    _unsubCities = listenCities(worldId, cities => {
+      _cities=cities;
+      if(document.querySelector('.view.on')?.id==='v-di') renderDiplo(_worldData,cities);
+    });
+
+    try { listenMarket(worldId, offers => { setMarketOffers(offers); if(document.querySelector('.view.on')?.id==='v-mkt') renderMarket(); }); } catch(e){}
+    try { listenChat(worldId, msgs => { setChatMsgs(msgs); if(document.querySelector('.view.on')?.id==='v-mkt' && _mktTab==='chat') renderMarket(); }); } catch(e){ console.warn('Chat:',e); }
+
+    applyEraTheme(S.era||0);
+    initNav(VIEWS);
+    renderOverview();
+    updateTopbar();
+    addLog('Session démarrée !','g');
+
+    startTick(() => {
+      updateTopbar();
+      const id=document.querySelector('.view.on')?.id;
+      if(VIEWS[id]) VIEWS[id]();
+      liveUpdateRes();
+      const dot=document.getElementById('tdot');
+      if(dot){dot.classList.add('pulse');setTimeout(()=>dot.classList.remove('pulse'),250);}
+    });
+
+    startAutoSave();
+    _progressInterval = setInterval(() => { tickProgress(); liveUpdateRes(); updateTopbar(); }, 500);
+
+  } catch(err) {
+    console.error('Init error:', err);
+    const otxt=document.getElementById('overlay-text');
+    if(otxt) otxt.textContent='❌ '+err.message;
+    setTimeout(hideOv, 4000);
+    return;
+  }
+  hideOv();
+});
+
+document.getElementById('btn-save')?.addEventListener('click', async () => { await forceSave(); toast('Sauvegardé','g'); });
+document.getElementById('btn-quit')?.addEventListener('click', async () => {
+  await forceSave();
+  setPlayerOnline(worldId, CTX.uid, false);
+  clearInterval(_progressInterval);
+  if(_unsubWorld) _unsubWorld();
+  if(_unsubCities) _unsubCities();
+  window.location.href='index.html';
+});
+document.getElementById('tb-code')?.addEventListener('click', () => {
+  const code=document.getElementById('tb-code')?.textContent;
+  if(code) navigator.clipboard?.writeText(code).then(()=>toast('Code copié: '+code));
+});
+
+window.addEventListener('beforeunload', () => {
+  setPlayerOnline(worldId, CTX.uid, false);
+  if(S.dirty) forceSave();
+});
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/terra/sw.js',{scope:'/terra/'}).catch(()=>{});
+}
+</script>
+</body>
+</html>

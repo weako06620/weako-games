@@ -1,0 +1,171 @@
+/* ── TERRA — base.css ── */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Barlow+Condensed:wght@500;700;800&display=swap');
+
+:root {
+  --bg:    #090d16;
+  --bg1:   #0d1322;
+  --bg2:   #111828;
+  --bg3:   #182034;
+  --bg4:   #1e2a42;
+  --bd:    rgba(255,255,255,0.07);
+  --bd2:   rgba(255,255,255,0.12);
+  --bd3:   rgba(255,255,255,0.18);
+  --tx:    #cdd9e8;
+  --tx2:   #a0b4c8;
+  --mu:    #3d5270;
+  --mu2:   #6b85a0;
+  --cy:    #22d3ee;
+  --cy2:   #67e8f9;
+  --go:    #f59e0b;
+  --go2:   #fcd34d;
+  --gn:    #34d399;
+  --gn2:   #6ee7b7;
+  --rd:    #f87171;
+  --pu:    #a78bfa;
+  --mono:  'IBM Plex Mono', monospace;
+  --sans:  'Barlow Condensed', sans-serif;
+  --radius: 8px;
+  --radius-sm: 5px;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { font-size: 14px; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: var(--bg);
+  color: var(--tx);
+  font-family: var(--mono);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Scrollbars ── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 4px; }
+
+/* ── Shared buttons ── */
+.btn {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 8px 18px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: 1px solid;
+  transition: all 0.14s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  line-height: 1;
+}
+.btn:disabled { opacity: 0.28; cursor: not-allowed; }
+
+.btn-cy  { background: rgba(34,211,238,.08); border-color: rgba(34,211,238,.35); color: var(--cy); }
+.btn-cy:hover:not(:disabled)  { background: rgba(34,211,238,.16); border-color: var(--cy); }
+
+.btn-go  { background: rgba(245,158,11,.08); border-color: rgba(245,158,11,.35); color: var(--go); }
+.btn-go:hover:not(:disabled)  { background: rgba(245,158,11,.16); border-color: var(--go); }
+
+.btn-gn  { background: rgba(52,211,153,.08); border-color: rgba(52,211,153,.35); color: var(--gn); }
+.btn-gn:hover:not(:disabled)  { background: rgba(52,211,153,.16); border-color: var(--gn); }
+
+.btn-rd  { background: rgba(248,113,113,.08); border-color: rgba(248,113,113,.35); color: var(--rd); }
+.btn-rd:hover:not(:disabled)  { background: rgba(248,113,113,.16); border-color: var(--rd); }
+
+.btn-ghost { background: transparent; border-color: var(--bd2); color: var(--mu2); }
+.btn-ghost:hover:not(:disabled) { background: var(--bg2); color: var(--tx); }
+
+.btn-solid-cy {
+  background: var(--cy); border-color: var(--cy); color: var(--bg);
+  font-size: 13px; padding: 10px 28px;
+}
+.btn-solid-cy:hover:not(:disabled) { background: var(--cy2); border-color: var(--cy2); }
+
+/* ── Shared inputs ── */
+.input {
+  background: var(--bg2);
+  border: 1px solid var(--bd2);
+  border-radius: var(--radius-sm);
+  color: var(--tx);
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 9px 12px;
+  width: 100%;
+  transition: border-color 0.14s;
+  outline: none;
+}
+.input:focus { border-color: var(--cy); }
+.input::placeholder { color: var(--mu); }
+
+.input-label {
+  font-size: 9px;
+  color: var(--mu);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 5px;
+  display: block;
+}
+
+/* ── Tags ── */
+.tag { font-size: 8px; padding: 1px 6px; border-radius: 3px; border: 1px solid; font-family: var(--mono); }
+.tag-cy  { border-color: rgba(34,211,238,.25); color: var(--cy);  background: rgba(34,211,238,.06); }
+.tag-gn  { border-color: rgba(52,211,153,.25);  color: var(--gn);  background: rgba(52,211,153,.06); }
+.tag-rd  { border-color: rgba(248,113,113,.25); color: var(--rd);  background: rgba(248,113,113,.06); }
+.tag-go  { border-color: rgba(245,158,11,.25);  color: var(--go);  background: rgba(245,158,11,.06); }
+.tag-pu  { border-color: rgba(167,139,250,.25); color: var(--pu);  background: rgba(167,139,250,.06); }
+.tag-mu  { border-color: var(--bd); color: var(--mu2); background: var(--bg3); }
+
+/* ── Section labels ── */
+.slbl {
+  font-size: 8px; color: var(--mu); text-transform: uppercase;
+  letter-spacing: 2px; margin: 16px 0 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.slbl::after { content:''; flex:1; height:1px; background: var(--bd); }
+
+/* ── Toast ── */
+#toast {
+  position: fixed; bottom: 14px; right: 14px;
+  z-index: 9999; display: flex; flex-direction: column; gap: 4px;
+  pointer-events: none;
+}
+.toast-item {
+  background: var(--bg2); border: 1px solid var(--bd2);
+  border-left: 3px solid var(--cy);
+  border-radius: var(--radius); padding: 8px 13px;
+  font-size: 11px; color: var(--tx);
+  animation: tin .2s ease, tout .3s 2.7s forwards;
+  max-width: 270px;
+}
+.toast-item.w { border-left-color: var(--go); }
+.toast-item.e { border-left-color: var(--rd); }
+.toast-item.g { border-left-color: var(--gn); }
+@keyframes tin  { from { opacity:0; transform:translateX(8px); } to { opacity:1; transform:none; } }
+@keyframes tout { to   { opacity:0; transform:translateX(8px); } }
+
+/* ── Spinner ── */
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid var(--bd2);
+  border-top-color: var(--cy);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Overlay loader ── */
+#overlay {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 16px; z-index: 9000;
+  transition: opacity .3s;
+}
+#overlay.hide { opacity: 0; pointer-events: none; }
+#overlay-text { font-size: 11px; color: var(--mu); letter-spacing: 1.5px; text-transform: uppercase; }
